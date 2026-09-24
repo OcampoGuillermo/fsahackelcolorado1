@@ -99,10 +99,11 @@ function renderQuiz() {
   if (state.quizDone) {
     const pct = Math.round((state.quizScore / QUIZ.length) * 100);
     const msg =
-      state.quizScore >= 4 ? '🏆 ¡Sos un/a experto/a en prevención!
-Compartí CaszaMosqui con tu barrio.'
-      : state.quizScore === 3 ? '💪 ¡Muy bien! Seguí aprendiendo y mirá la guía de prevención.'
-      : '📖 Repasá la guía de prevención: cada reporte y cada casa limpia cuentan.';
+      state.quizScore >= 4
+        ? '🏆 ¡Sos un/a experto/a en prevención! Compartí CaszaMosqui con tu barrio.'
+        : state.quizScore === 3
+          ? '💪 ¡Muy bien! Seguí aprendiendo y mirá la guía de prevención.'
+          : '📖 Repasá la guía de prevención: cada reporte y cada casa limpia cuentan.';
     cont.innerHTML = `
       <div class="quiz-card">
         <h3>Resultado: ${state.quizScore}/${QUIZ.length} (${pct}%)</h3>
