@@ -532,6 +532,46 @@ button.btn-voto { background: #fff; color: var(--texto); border: 1px solid var(-
 button.btn-voto:hover { background: #f8fafc; border-color: #cbd5e1; }
 button.btn-del { background: transparent; color: var(--rojo); border: 1px solid var(--rojo); }
 
+/* ---------- Paginación de reportes ---------- */
+.reportes-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borde);
+}
+.reportes-paginacion[hidden] { display: none; }
+.paginacion-numeros { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center; }
+button.reportes-pagina {
+  min-width: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--borde);
+  background: #fff;
+  color: var(--texto);
+  font-size: .85rem;
+}
+button.reportes-pagina:hover:not(:disabled) {
+  background: #ecfeff;
+  border-color: var(--acento);
+  color: var(--acento-oscuro);
+}
+button.reportes-pagina.activo {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: #fff;
+}
+button.reportes-pagina:disabled { opacity: .5; cursor: not-allowed; }
+.paginacion-ellipsis { padding: 0 3px; color: var(--suave); }
+.paginacion-info {
+  flex-basis: 100%;
+  text-align: center;
+  color: var(--suave);
+  font-size: .82rem;
+}
+
 .filtros { display: flex; gap: 8px; flex-wrap: wrap; }
 .filtros select, .filtros input {
   border: 1px solid var(--borde); border-radius: 8px; padding: 8px 12px;
@@ -549,6 +589,69 @@ label input:focus, label select:focus, label textarea:focus { outline: 2px solid
 .form-msg { font-weight: 600; }
 .form-msg.ok { color: var(--verde); }
 .form-msg.err { color: var(--rojo); }
+
+/* ---------- Acceso a la sección Reportes ---------- */
+.reportes-sesion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding: 10px 130px 10px 14px;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  border-radius: 10px;
+  color: var(--acento-oscuro);
+  font-size: .9rem;
+}
+.reportes-logout-form { margin: 0; }
+button.btn-logout {
+  padding: 7px 12px;
+  background: var(--suave);
+  font-size: .82rem;
+}
+button.btn-logout:hover { background: #475569; }
+
+.reportes-login {
+  max-width: 470px;
+  margin: 8px auto 4px;
+  padding: 28px 26px 22px;
+  text-align: center;
+  background: linear-gradient(180deg, #f0fdfa 0%, #fff 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 14px;
+}
+.reportes-login-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 10px;
+  display: grid;
+  place-items: center;
+  background: #e0f2fe;
+  border-radius: 50%;
+  font-size: 1.7rem;
+}
+.reportes-login h2 { margin-bottom: 4px; }
+.reportes-login .sub { margin-bottom: 20px; }
+.reportes-login-form { max-width: 350px; margin: 0 auto; text-align: left; }
+.reportes-login-form label { margin-bottom: 12px; }
+.reportes-login-form button { width: 100%; margin-top: 4px; }
+.reportes-login-error {
+  margin: 0 0 12px;
+  padding: 9px 11px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: var(--rojo);
+  font-size: .88rem;
+  font-weight: 600;
+}
+.reportes-login-note {
+  margin: 18px 0 0;
+  color: var(--suave);
+  font-size: .78rem;
+}
 
 /* ---------- Prevención ---------- */
 .tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
@@ -587,4 +690,5 @@ footer { border-top: 1px solid var(--borde); padding: 18px 0; margin-top: 30px; 
   .filtros select, .filtros input { flex: 1; min-width: 120px; }
   .hero { flex-direction: column; align-items: flex-start; }
   .mapa { height: 480px; }
+  .reportes-sesion { padding-right: 14px; align-items: flex-start; }
 }

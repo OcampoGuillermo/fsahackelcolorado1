@@ -74,7 +74,7 @@ function evaluar(array $d, string $fuente): array
     $tmedia7   = $medias7 ? array_sum($medias7) / count($medias7) : 0.0;
     $prevista3 = suma(array_slice($lluvia, $hoy, 4));
 
-    // Puntaje climático 0-5
+    // Puntaje climático 0-5 (independiente del semáforo de criaderos por barrio)
     $p = 0;
     if ($lluvia14 >= 50)      $p += 2;
     elseif ($lluvia14 >= 20)  $p += 1;

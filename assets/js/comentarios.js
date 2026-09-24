@@ -3,6 +3,10 @@
    1 interacción por día por dispositivo (localStorage)
    ============================================================ */
 
+alert('comentarios.js EXECUTING');
+
+console.log('comentarios.js PARSED - file loaded');
+
 const API = () => window.BASE_URL + '/api/';
 
 const $  = (sel, ctx = document) => ctx.querySelector(sel);
@@ -11,7 +15,7 @@ const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 const ESCAPAR = (txt = '') =>
   String(txt).replace(/[&<>"']/g, (c) => ({
     '&': '&', '<': '<', '>': '>', '"': '"', "'": ''',
-  }[c]));
+  }[c]);
 
 async function api(route, options = {}) {
   const res = await fetch(API() + '?route=' + route, {
@@ -52,7 +56,7 @@ function actualizarAviso() {
   const btn = $('#btn-enviar');
   const ta = $('#textarea-comentario');
   if (!puedeInteractuar()) {
-    aviso.textContent = '⚠️ Ya realizaste una interacción hoy. Volvé mañana.';
+    aviso.textContent = '⚠️ Ya realizaste tu interacción hoy. Volvé mañana.';
     aviso.classList.add('bloqueado');
     if (btn) btn.disabled = true;
     if (ta) ta.disabled = true;
@@ -157,4 +161,8 @@ async function init() {
   await Promise.all([cargarBarriosSelect(), cargarComentarios()]);
 }
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

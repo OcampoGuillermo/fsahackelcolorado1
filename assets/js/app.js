@@ -6,6 +6,10 @@
 
 const API = () => window.BASE_URL + '/api/';
 
+function tieneAccesoReportes() {
+  return window.REPORTES_ACCESS === true;
+}
+
 /* ---------- Utilidades ---------- */
 const $  = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
@@ -15,16 +19,22 @@ const ESCAPAR = (txt = '') =>
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
 
-async function api(route, options = {}) {
+async function apiRespuesta(route, options = {}) {
   console.log('API call:', route);
   const res = await fetch(API() + '?route=' + route, {
+    credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
   console.log('API response:', res.status, route);
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.ok === false) throw new Error(json.error || 'Error en la API');
-  return json.data;
+  return json;
+}
+
+async function api(route, options = {}) {
+  const respuesta = await apiRespuesta(route, options);
+  return respuesta.data;
 }
 
 function fechaRelativa(dt) {
@@ -50,11 +60,23 @@ const NIVELES = {
   bajo:  { color: '#16a34a', label: 'Riesgo bajo' },
 };
 
+const RIESGO_ROJO_MINIMO = 5;
+const RIESGO_AMARILLO_MINIMO = 3;
+
+function nivelRiesgo(activos) {
+  const cantidad = Math.max(0, Number(activos) || 0);
+  if (cantidad >= RIESGO_ROJO_MINIMO) return 'alto';
+  if (cantidad >= RIESGO_AMARILLO_MINIMO) return 'medio';
+  return 'bajo';
+}
+
 /* ---------- Estado global ---------- */
 const state = {
   tipos: [],
   barrios: [],
   filtros: { tipo: '', barrio: '', estado: '', q: '' },
+  paginaReportes: 1,
+  reportesRequestId: 0,
   quizIndex: 0,
   quizScore: 0,
   quizDone: false,
@@ -65,6 +87,8 @@ const state = {
   mapaPanY: 0,
   mapaEnfocadoBarrio: null,
 };
+
+const REPORTES_POR_PAGINA = 4;
 
 /* ---------- Límite diario (1 interacción por dispositivo) ---------- */
 const LIMITE_KEY = 'casza_limite_diario';
@@ -236,8 +260,8 @@ function renderBarriosSidebar(barrios, riesgo) {
   const items = barrios.map((b) => {
     const n = b.nombre.length > 22 ? b.nombre.substring(0, 21) + '…' : b.nombre;
     const idx = indicePorBarrio[b.id] !== undefined ? indicePorBarrio[b.id] : (b.indice !== undefined ? b.indice : 0);
-    const nivel = idx >= 4 ? 'alto' : (idx >= 2 ? 'medio' : 'bajo');
-    const cls = idx > 0 ? nivel : 'none';
+    const nivel = nivelRiesgo(idx);
+    const cls = nivel;
     return `<li>
       <button type="button" data-barrio="${b.id}" data-x="${b.x}" data-y="${b.y}" title="${ESCAPAR(b.nombre)}">
         <span>${ESCAPAR(n)}</span>
@@ -303,14 +327,10 @@ function renderMapaFiltros() {
   });
 }
 
-// Nivel final del barrio = criaderos sin controlar + bonus climático (clima.js).
-// Si el clima todavía no cargó (o falla), se usa el nivel que calcula la API.
+// El semáforo depende únicamente de los criaderos sin controlar.
+// El clima se muestra aparte y no puede convertir un barrio en rojo.
 function nivelBarrio(b) {
-  const activos = Number(b.indice) || 0;
-  if (window.riesgoConClima && window.CaszaClima && window.CaszaClima.listo) {
-    return window.riesgoConClima(activos).nivel;
-  }
-  return b.nivel in NIVELES ? b.nivel : 'bajo';
+  return nivelRiesgo(b.indice);
 }
 
 /* ---------- Zoom/pan helpers ---------- */
@@ -370,11 +390,10 @@ function renderMapa(riesgo) {
     const activos = Number(b.indice) || 0;
     const nivel = nivelBarrio(b);
     const oculto = (filtroNivel !== 'todos' && filtroNivel !== nivel) ? ' oculto' : '';
-    const vacio = activos === 0 ? ' none' : '';
     const sel = state.filtros.barrio == b.id ? ' activo' : '';
-    const extraClima = activos > 0 && bonus > 0 ? ` (+${bonus} por clima)` : '';
+    const extraClima = activos > 0 && bonus > 0 ? ` · alerta climática: +${bonus}` : '';
     return `
-      <button type="button" class="mapa-node ${nivel}${vacio}${sel}${oculto}" style="left:${b.x}%;top:${b.y}%"
+      <button type="button" class="mapa-node ${nivel}${sel}${oculto}" style="left:${b.x}%;top:${b.y}%"
               data-barrio="${b.id}" data-nivel="${nivel}" data-x="${b.x}" data-y="${b.y}"
               title="${ESCAPAR(b.nombre)}: ${activos} criadero(s) sin controlar${extraClima} · ${NIVELES[nivel].label}">
         <span class="burbuja">${activos}</span>
@@ -417,16 +436,93 @@ function reporteCard(r) {
     </article>`;
 }
 
+function paginaItems(pagina, totalPaginas) {
+  if (totalPaginas <= 7) {
+    return Array.from({ length: totalPaginas }, (_, i) => i + 1);
+  }
+
+  const numeros = [...new Set([1, totalPaginas, pagina - 1, pagina, pagina + 1])]
+    .filter((n) => n >= 1 && n <= totalPaginas)
+    .sort((a, b) => a - b);
+  const items = [];
+
+  numeros.forEach((numero, index) => {
+    if (index > 0 && numero - numeros[index - 1] > 1) items.push('…');
+    items.push(numero);
+  });
+
+  return items;
+}
+
+function renderPaginacion(meta = {}) {
+  const nav = $('[data-js-paginacion]');
+  if (!nav) return;
+
+  const pagina = Math.max(1, Number(meta.pagina) || state.paginaReportes || 1);
+  const porPagina = Math.max(1, Number(meta.por_pagina) || REPORTES_POR_PAGINA);
+  const total = Math.max(0, Number(meta.total) || 0);
+  const totalPaginas = Math.max(0, Number(meta.total_paginas) || 0);
+
+  state.paginaReportes = pagina;
+  if (totalPaginas <= 1) {
+    nav.hidden = true;
+    return;
+  }
+
+  nav.hidden = false;
+  const anterior = $('[data-pagina-anterior]', nav);
+  const siguiente = $('[data-pagina-siguiente]', nav);
+  const numeros = $('[data-js-paginacion-numeros]', nav);
+  const info = $('[data-js-paginacion-info]', nav);
+
+  if (anterior) anterior.disabled = pagina <= 1;
+  if (siguiente) siguiente.disabled = pagina >= totalPaginas;
+  if (numeros) {
+    numeros.innerHTML = paginaItems(pagina, totalPaginas).map((item) => {
+      if (item === '…') return '<span class="paginacion-ellipsis" aria-hidden="true">…</span>';
+      const activo = item === pagina;
+      return `<button type="button" class="reportes-pagina${activo ? ' activo' : ''}"
+        data-pagina-reportes="${item}"${activo ? ' aria-current="page"' : ''}>${item}</button>`;
+    }).join('');
+  }
+  if (info) {
+    const desde = meta.desde !== undefined ? Number(meta.desde) : Math.min(total, (pagina - 1) * porPagina + 1);
+    const hasta = meta.hasta !== undefined ? Number(meta.hasta) : Math.min(total, pagina * porPagina);
+    info.textContent = `Mostrando ${desde}–${hasta} de ${total} reporte${total === 1 ? '' : 's'}`;
+  }
+}
+
 async function cargarReportes() {
   console.log('cargarReportes() called');
+  if (!tieneAccesoReportes()) return;
+
+  const cont = $('[data-js-reportes]');
+  if (!cont) return;
+
+  const requestId = ++state.reportesRequestId;
   const f = state.filtros;
+  const paginaSolicitada = Math.max(1, Number(state.paginaReportes) || 1);
   const params = new URLSearchParams();
   if (f.tipo) params.set('tipo', f.tipo);
   if (f.barrio) params.set('barrio', f.barrio);
   if (f.estado) params.set('estado', f.estado);
   if (f.q) params.set('q', f.q);
+  params.set('pagina', paginaSolicitada);
+  params.set('por_pagina', REPORTES_POR_PAGINA);
 
-  const reportes = await api('reportes' + (params.toString() ? '&' + params.toString() : ''));
+  cont.innerHTML = '<p class="loading">Cargando reportes…</p>';
+  const respuesta = await apiRespuesta('reportes&' + params.toString());
+  if (requestId !== state.reportesRequestId) return;
+
+  const reportes = Array.isArray(respuesta.data) ? respuesta.data : [];
+  const paginacion = respuesta.meta || {
+    pagina: paginaSolicitada,
+    por_pagina: REPORTES_POR_PAGINA,
+    total: reportes.length,
+    total_paginas: reportes.length ? 1 : 0,
+    desde: reportes.length ? 1 : 0,
+    hasta: reportes.length,
+  };
 
   // Actualizar el título según el filtro de barrio activo
   if (f.barrio) {
@@ -437,7 +533,7 @@ async function cargarReportes() {
     $('.panel-head h2', $('#reportes')).innerHTML = '📋 Criaderos reportados por la comunidad';
   }
 
-  const cont = $('[data-js-reportes]');
+  renderPaginacion(paginacion);
   if (!reportes.length) {
     cont.innerHTML = '<p class="placeholder">No hay criaderos con esos filtros. ¡Reportá el primero!</p>';
     return;
@@ -472,6 +568,7 @@ async function crearReporte(ev) {
     });
     incrementarLimite();
     actualizarEstadoLimite();
+    state.paginaReportes = 1;
     msg.textContent = '✅ ¡Criadero reportado! Ya aparece en el mapa de tu barrio.';
     msg.classList.add('ok');
     form.reset();
@@ -539,6 +636,7 @@ function bind() {
     const node = ev.target.closest('[data-barrio]');
     if (!node) return;
     state.filtros.barrio = state.filtros.barrio == node.dataset.barrio ? '' : node.dataset.barrio;
+    state.paginaReportes = 1;
     const selBarrio = $('[data-js-filtros] select[name=barrio]');
     if (selBarrio) selBarrio.value = state.filtros.barrio;   // mantener el filtro visible sincronizado
     renderMapa(state.ultimaRiesgo || []);
@@ -557,14 +655,17 @@ function bind() {
     if (barrioId === 'todos') {
       // Mostrar todos - reset zoom
       state.filtros.barrio = '';
+      state.paginaReportes = 1;
       resetZoom();
       renderMapa(state.ultimaRiesgo || []);
+      cargarReportes();
       return;
     }
     // Centrar mapa en el barrio CON ZOOM
     const barrio = state.barrios.find((b) => b.id == barrioId);
     if (barrio) {
       state.filtros.barrio = barrioId;
+      state.paginaReportes = 1;
       // Actualizar filtro visible
       const selBarrio = $('[data-js-filtros] select[name=barrio]');
       if (selBarrio) selBarrio.value = barrioId;
@@ -587,12 +688,14 @@ function bind() {
       estado: f.get('estado') || '',
       q: f.get('q')?.trim() || '',
     };
+    state.paginaReportes = 1;
     await cargarReportes();
   });
 
   $('[data-js-reset]')?.addEventListener('click', () => {
     $('[data-js-filtros]')?.reset();
     state.filtros = { tipo: '', barrio: '', estado: '', q: '' };
+    state.paginaReportes = 1;
     cargarReportes();
     cargarStats();
   });
@@ -606,6 +709,31 @@ function bind() {
     if (target.hasAttribute('data-estado')) cambiarEstado(target.dataset.id, target.dataset.sig);
     if (target.hasAttribute('data-voto')) votarReporte(target.dataset.id);
     if (target.hasAttribute('data-eliminar')) eliminarReporte(target.dataset.id);
+  });
+
+  // Paginación del listado de reportes
+  $('[data-js-paginacion]')?.addEventListener('click', (ev) => {
+    const anterior = ev.target.closest('[data-pagina-anterior]');
+    const siguiente = ev.target.closest('[data-pagina-siguiente]');
+    const numero = ev.target.closest('button[data-pagina-reportes]');
+    let pagina = state.paginaReportes;
+
+    if (anterior) {
+      if (anterior.disabled) return;
+      pagina -= 1;
+    } else if (siguiente) {
+      if (siguiente.disabled) return;
+      pagina += 1;
+    } else if (numero) {
+      pagina = Number(numero.dataset.paginaReportes);
+    } else {
+      return;
+    }
+
+    if (!Number.isInteger(pagina) || pagina < 1 || pagina === state.paginaReportes) return;
+    state.paginaReportes = pagina;
+    cargarReportes();
+    $('#reportes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   // Quiz
@@ -666,10 +794,15 @@ async function init() {
     console.log('Loading stats UI...');
     cargarStats();
     console.log('Loading reports...');
-    await cargarReportes();
+    if (tieneAccesoReportes()) {
+      await cargarReportes();
+    }
   } catch (err) {
     console.error('Init error:', err);
-    $('[data-js-reportes]').innerHTML = `<p class="placeholder">⚠️ ${ESCAPAR(err.message)}</p>`;
+    const contReportes = $('[data-js-reportes]');
+    if (contReportes) {
+      contReportes.innerHTML = `<p class="placeholder">⚠️ ${ESCAPAR(err.message)}</p>`;
+    }
   }
   console.log('Rendering quiz...');
   renderQuiz();

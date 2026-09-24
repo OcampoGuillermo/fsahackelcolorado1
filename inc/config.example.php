@@ -18,3 +18,11 @@ define('APP_VERSION', '1.0.0');
 
 // URL base del proyecto dentro de htdocs (sin barra final)
 define('BASE_URL', '/formosahack-2026');
+
+// Acceso temporal a la sección Reportes.
+// Credenciales iniciales: usuario `admin`, contraseña `admin123`.
+// Para cambiar la contraseña, generar un hash con:
+// C:\xampp\php\php.exe -r "echo password_hash('TU_NUEVA_CONTRASENA', PASSWORD_DEFAULT), PHP_EOL;"
+// y reemplazar AUTH_PASSWORD_HASH por el resultado.
+define('AUTH_USERNAME', 'admin');
+define('AUTH_PASSWORD_HASH', '$2y$10$fap8ykp3Caa7RpqDs0HBiOZa2sc89Rpd3haniU4CQM5z.L6tHnEyq');

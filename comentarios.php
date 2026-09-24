@@ -136,6 +136,6 @@ try {
 <script>
   window.BASE_URL = <?= json_encode(BASE_URL) ?>;
 </script>
-<script src="<?= e(BASE_URL) ?>/assets/js/comentarios.js"></script>
+<script src="<?= e(BASE_URL) ?>/assets/js/comentarios.js?v=20240924"></script>
 </body>
 </html>

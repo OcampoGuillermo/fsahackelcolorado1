@@ -5,8 +5,8 @@
  * Rutas (usar ?route=):
  *   GET    /api/?route=tipos
  *   GET    /api/?route=barrios
- *   GET    /api/?route=reportes            (filtros: ?tipo=&barrio=&estado=&q=&limit=)
- *   GET    /api/?route=reportes/{id}
+ *   GET    /api/?route=reportes            (requiere sesión; filtros: ?tipo=&barrio=&estado=&q=&pagina=&por_pagina=)
+ *   GET    /api/?route=reportes/{id}       (requiere sesión)
  *   POST   /api/?route=reportes            (body JSON)
  *   PATCH  /api/?route=reportes/{id}       (estado: pendiente|verificado|controlado)
  *   DELETE /api/?route=reportes/{id}
@@ -14,6 +14,7 @@
  */
 
 require_once __DIR__ . '/../inc/helpers.php';
+require_once __DIR__ . '/../inc/auth.php';
 
 /* ---------- Resolución de la ruta ---------- */
 $route = $_GET['route'] ?? '';
@@ -51,6 +52,14 @@ function url_base(): string
     return BASE_URL . '/api';
 }
 
+/** La consulta y la gestión de reportes requieren la sesión de Reportes. */
+function exigir_acceso_reportes(): void
+{
+    if (!reportes_logueado()) {
+        json_error('Iniciá sesión para acceder a los reportes.', 401);
+    }
+}
+
 /* ---------- Rutas ---------- */
 
 if ($route === '' && $method === 'GET') {
@@ -63,7 +72,7 @@ if ($route === '' && $method === 'GET') {
             "$b?route=tipos",
             "$b?route=barrios",
             "$b?route=reportes",
-            "$b?route=reportes&tipo={id}&barrio={id}&estado={estado}&q={texto}",
+            "$b?route=reportes&tipo={id}&barrio={id}&estado={estado}&q={texto}&pagina={1}&por_pagina={4}",
             "$b?route=reportes/{id}",
             "$b?route=stats",
         ],
@@ -98,7 +107,7 @@ if ($route === 'stats' && $method === 'GET') {
 
     // Índice de riesgo por barrio (semáforo)
     //   activos = pendientes + verificados   |   controlados = controlado
-    //   riesgo = activos / (controlados + 1)   (fórmula simple, documentada en docs)
+    //   0-2 bajo · 3-4 medio · 5 o más alto
     $riesgo = db()->query(
         "SELECT b.id, b.nombre, b.localidad, b.x, b.y,
                 SUM(CASE WHEN r.estado IN ('pendiente','verificado') THEN 1 ELSE 0 END) AS activos,
@@ -112,10 +121,10 @@ if ($route === 'stats' && $method === 'GET') {
     foreach ($riesgo as &$b) {
         $activos     = (int) $b['activos'];
         $controlados = (int) $b['controlados'];
-        // Índice de riesgo activo = criaderos sin controlar en el barrio
+        // El número y el color usan únicamente criaderos sin controlar.
         $b['indice'] = $activos;
-        $b['nivel']  = $activos >= 4 ? 'alto'
-                     : ($activos >= 2 ? 'medio' : 'bajo');
+        $b['nivel']  = $activos >= 5 ? 'alto'
+                     : ($activos >= 3 ? 'medio' : 'bajo');
         unset($b['activos'], $b['controlados']);
     }
 
@@ -138,43 +147,79 @@ if ($route === 'stats' && $method === 'GET') {
 
 // LISTA de reportes con filtros
 if (preg_match('#^reportes$#', $route) && $method === 'GET') {
+    exigir_acceso_reportes();
+
     $tipo   = val($_GET['tipo'] ?? '');
     $barrio = val($_GET['barrio'] ?? '');
     $estado = val($_GET['estado'] ?? '');
     $q      = trim($_GET['q'] ?? '');
-    $limit  = min(200, max(1, (int) ($_GET['limit'] ?? 50)));
+    $paginaSolicitada = max(1, (int) ($_GET['pagina'] ?? $_GET['page'] ?? 1));
+    $porPagina = min(200, max(1, (int) ($_GET['por_pagina'] ?? $_GET['limit'] ?? 4)));
 
-    $sql  = "SELECT r.id, r.titulo, r.descripcion, r.referencia, r.estado, r.votos,
-                    r.creado_en,
-                    t.nombre AS tipo, t.color, t.icono,
-                    b.nombre AS barrio, b.localidad
-               FROM reportes r
-               JOIN tipos_criadero t ON t.id = r.tipo_id
-               JOIN barrios b        ON b.id = r.barrio_id
-              WHERE 1=1";
-    $pars = [];
+    // Se construye una sola condición para contar y luego traer la página actual.
+    $where = ' WHERE 1=1';
+    $pars  = [];
 
-    if ($tipo !== '')   { $sql .= ' AND r.tipo_id = ?';   $pars[] = (int) $tipo; }
-    if ($barrio !== '') { $sql .= ' AND r.barrio_id = ?'; $pars[] = (int) $barrio; }
+    if ($tipo !== '')   { $where .= ' AND r.tipo_id = ?';   $pars[] = (int) $tipo; }
+    if ($barrio !== '') { $where .= ' AND r.barrio_id = ?'; $pars[] = (int) $barrio; }
     if ($estado !== '' && validar_estado($estado)) {
-        $sql .= ' AND r.estado = ?';
+        $where .= ' AND r.estado = ?';
         $pars[] = $estado;
     }
     if ($q !== '') {
-        $sql .= ' AND (r.titulo LIKE ? OR r.descripcion LIKE ? OR r.referencia LIKE ? OR b.nombre LIKE ? OR t.nombre LIKE ?)';
+        $where .= ' AND (r.titulo LIKE ? OR r.descripcion LIKE ? OR r.referencia LIKE ? OR b.nombre LIKE ? OR t.nombre LIKE ?)';
         $like = "%{$q}%";
         array_push($pars, $like, $like, $like, $like, $like);
     }
-    $sql .= ' ORDER BY r.creado_en DESC LIMIT ' . $limit;
+
+    $countStmt = db()->prepare(
+        "SELECT COUNT(*)
+           FROM reportes r
+           JOIN tipos_criadero t ON t.id = r.tipo_id
+           JOIN barrios b        ON b.id = r.barrio_id"
+        . $where
+    );
+    $countStmt->execute($pars);
+    $total = (int) $countStmt->fetchColumn();
+
+    $totalPaginas = $total > 0 ? (int) ceil($total / $porPagina) : 0;
+    $pagina = $totalPaginas > 0
+        ? min($paginaSolicitada, $totalPaginas)
+        : 1;
+    $offset = ($pagina - 1) * $porPagina;
+
+    $sql = "SELECT r.id, r.titulo, r.descripcion, r.referencia, r.estado, r.votos,
+                   r.creado_en,
+                   t.nombre AS tipo, t.color, t.icono,
+                   b.nombre AS barrio, b.localidad
+              FROM reportes r
+              JOIN tipos_criadero t ON t.id = r.tipo_id
+              JOIN barrios b        ON b.id = r.barrio_id"
+        . $where
+        . ' ORDER BY r.creado_en DESC, r.id DESC LIMIT ' . $porPagina . ' OFFSET ' . $offset;
 
     $stmt = db()->prepare($sql);
     $stmt->execute($pars);
 
-    json_response(['ok' => true, 'data' => $stmt->fetchAll()]);
+    json_response([
+        'ok'   => true,
+        'data' => $stmt->fetchAll(),
+        'meta' => [
+            'pagina'        => $pagina,
+            'por_pagina'    => $porPagina,
+            'total'         => $total,
+            'total_paginas' => $totalPaginas,
+            'tiene_anterior' => $pagina > 1,
+            'tiene_siguiente' => $pagina < $totalPaginas,
+            'desde'         => $total > 0 ? $offset + 1 : 0,
+            'hasta'         => min($offset + $porPagina, $total),
+        ],
+    ]);
 }
 
 // UN reporte + operaciones por id
 if (preg_match('#^reportes/(\d+)$#', $route, $m)) {
+    exigir_acceso_reportes();
     $id = (int) $m[1];
 
     if ($method === 'GET') {

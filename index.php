@@ -5,6 +5,16 @@
  * Los datos se cargan desde la API /api/?route=... con fetch().
  */
 require_once __DIR__ . '/inc/helpers.php';
+require_once __DIR__ . '/inc/auth.php';
+
+$reportes_logueado = reportes_logueado();
+$reportes_error     = consumir_error_reportes();
+$reportes_csrf      = reportes_csrf_token();
+$reportes_usuario   = usuario_reportes();
+
+// Evitar que el contenido protegido pueda quedar en la caché del navegador.
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -14,7 +24,7 @@ require_once __DIR__ . '/inc/helpers.php';
   <title><?= e(APP_NAME) ?> · <?= e(APP_TAGLINE) ?></title>
   <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" type="image/jpeg">
   <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg">
-  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css?v=20260924-pagination">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/clima.css">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/mapa-plano.css">
 </head>
@@ -92,7 +102,7 @@ require_once __DIR__ . '/inc/helpers.php';
         <div class="mapa-imagen" data-js-mapa-imagen aria-label="Plano de barrios de El Colorado"></div>
         <div class="mapa-burbujas" data-js-mapa-burbujas aria-label="Burbujas de riesgo por barrio"></div>
       </div>
-      <p class="mapa-nota">Plano oficial de barrios de El Colorado. Usá los botones <strong>🔍+ / 🔍−</strong> para zoom, <strong>⌂</strong> para reset. <strong>Clic en un barrio</strong> (lista o burbuja) para centrar y hacer zoom.</p>
+      <p class="mapa-nota">Plano oficial de barrios de El Colorado. Usá los botones <strong>🔍+ / 🔍−</strong> para zoom, <strong>⌂</strong> para reset. <strong>Clic en un barrio</strong> (lista o burbuja) para centrar y hacer zoom. Semáforo: <strong>rojo 5+</strong> criaderos sin controlar, <strong>amarillo 3-4</strong>, <strong>verde 0-2</strong>.</p>
     </div>
   </section>
 
@@ -122,28 +132,68 @@ require_once __DIR__ . '/inc/helpers.php';
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Volver Al Inicio
     </a>
-    <div class="panel-head">
-      <h2>📋 Criaderos reportados por la comunidad</h2>
-      <form class="filtros" data-js-filtros>
-        <select name="tipo" aria-label="Filtrar por tipo">
-          <option value="">Todos los tipos</option>
-        </select>
-        <select name="barrio" aria-label="Filtrar por barrio">
-          <option value="">Todos los barrios</option>
-        </select>
-        <select name="estado" aria-label="Filtrar por estado">
-          <option value="">Todos los estados</option>
-          <option value="pendiente">Sin controlar</option>
-          <option value="verificado">Verificado</option>
-          <option value="controlado">Controlado</option>
-        </select>
-        <input type="search" name="q" placeholder="Buscar…" aria-label="Buscar">
-        <button type="button" data-js-reset class="btn-ghost">Limpiar</button>
-      </form>
-    </div>
-    <div data-js-reportes>
-      <p class="loading">Cargando reportes…</p>
-    </div>
+
+    <?php if ($reportes_logueado): ?>
+      <div class="reportes-sesion">
+        <span>Sesión iniciada como <strong><?= e($reportes_usuario) ?></strong></span>
+        <form method="post" action="<?= e(BASE_URL) ?>/reportes-auth.php" class="reportes-logout-form">
+          <input type="hidden" name="accion" value="logout">
+          <input type="hidden" name="csrf" value="<?= e($reportes_csrf) ?>">
+          <button type="submit" class="btn-logout">Cerrar sesión</button>
+        </form>
+      </div>
+      <div class="panel-head">
+        <h2>📋 Criaderos reportados por la comunidad</h2>
+        <form class="filtros" data-js-filtros>
+          <select name="tipo" aria-label="Filtrar por tipo">
+            <option value="">Todos los tipos</option>
+          </select>
+          <select name="barrio" aria-label="Filtrar por barrio">
+            <option value="">Todos los barrios</option>
+          </select>
+          <select name="estado" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Sin controlar</option>
+            <option value="verificado">Verificado</option>
+            <option value="controlado">Controlado</option>
+          </select>
+          <input type="search" name="q" placeholder="Buscar…" aria-label="Buscar">
+          <button type="button" data-js-reset class="btn-ghost">Limpiar</button>
+        </form>
+      </div>
+      <div data-js-reportes>
+        <p class="loading">Cargando reportes…</p>
+      </div>
+      <nav class="reportes-paginacion" data-js-paginacion aria-label="Paginación de reportes" hidden>
+        <button type="button" class="reportes-pagina" data-pagina-anterior disabled>← Anterior</button>
+        <div class="paginacion-numeros" data-js-paginacion-numeros></div>
+        <button type="button" class="reportes-pagina" data-pagina-siguiente disabled>Siguiente →</button>
+        <span class="paginacion-info" data-js-paginacion-info aria-live="polite"></span>
+      </nav>
+    <?php else: ?>
+      <div class="reportes-login">
+        <div class="reportes-login-icon" aria-hidden="true">🔒</div>
+        <h2>Acceso a Reportes</h2>
+        <p class="sub">Ingresá con tu usuario para consultar y gestionar los criaderos reportados por la comunidad.</p>
+        <form method="post" action="<?= e(BASE_URL) ?>/reportes-auth.php" class="reportes-login-form">
+          <input type="hidden" name="accion" value="login">
+          <input type="hidden" name="csrf" value="<?= e($reportes_csrf) ?>">
+          <label for="reportes-usuario">
+            Usuario
+            <input id="reportes-usuario" name="usuario" type="text" autocomplete="username" required autofocus>
+          </label>
+          <label for="reportes-contrasena">
+            Contraseña
+            <input id="reportes-contrasena" name="contrasena" type="password" autocomplete="current-password" required>
+          </label>
+          <?php if ($reportes_error): ?>
+            <p class="reportes-login-error" role="alert"><?= e($reportes_error) ?></p>
+          <?php endif; ?>
+          <button type="submit" class="btn-login">Ingresar</button>
+        </form>
+        <p class="reportes-login-note">El acceso usa una sesión de PHP y se mantiene mientras la aplicación esté abierta.</p>
+      </div>
+    <?php endif; ?>
   </section>
 
   <!-- FORMULARIO -->
@@ -225,9 +275,10 @@ require_once __DIR__ . '/inc/helpers.php';
 
 <script>
   window.BASE_URL = <?= json_encode(BASE_URL) ?>;
+  window.REPORTES_ACCESS = <?= $reportes_logueado ? 'true' : 'false' ?>;
 </script>
 <script src="<?= e(BASE_URL) ?>/assets/js/clima.js"></script>
 <script src="<?= e(BASE_URL) ?>/assets/js/calles.js"></script>
-<script src="<?= e(BASE_URL) ?>/assets/js/app.js"></script>
+<script src="<?= e(BASE_URL) ?>/assets/js/app.js?v=20260924-pagination"></script>
 </body>
 </html>
