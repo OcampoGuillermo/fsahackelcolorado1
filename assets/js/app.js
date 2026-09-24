@@ -212,7 +212,6 @@ async function cargarStats() {
 
   state.ultimaRiesgo = stats.riesgo_barrios;
   renderMapa(stats.riesgo_barrios);
-  renderMapaFiltros();
 }
 
 function renderMapa(riesgo) {

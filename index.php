@@ -58,10 +58,16 @@ require_once __DIR__ . '/inc/helpers.php';
         <span><i class="dot bajo"></i> Riesgo bajo</span>
       </div>
     </div>
+    <div class="mapa-filtros" data-mapa-filtros>
+      <button data-nivel="todos" class="activo">Todos</button>
+      <button data-nivel="alto">Riesgo alto</button>
+      <button data-nivel="medio">Riesgo medio</button>
+      <button data-nivel="bajo">Riesgo bajo</button>
+    </div>
     <div class="mapa" data-js-mapa aria-label="Mapa esquemático de riesgo por barrio">
       <p class="loading">Cargando mapa…</p>
     </div>
-    <p class="mapa-nota">Mapa esquemático generado en vivo según los reportes de la comunidad.
+    <p class="mapa-nota">Mapa del plano oficial generado en vivo según los reportes de la comunidad.
        <strong>Clic en un barrio</strong> para ver sus criaderos.</p>
   </section>
 
