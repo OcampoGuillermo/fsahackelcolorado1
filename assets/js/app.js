@@ -211,18 +211,24 @@ async function cargarCatalogos() {
   if (formTipo) formTipo.innerHTML = '<option value="">— Elegir tipo —</option>' + optsTipo;
   if (formBarrio) formBarrio.innerHTML = '<option value="">— Elegir barrio —</option>' + optsBarrio;
 
-  // Sidebar de barrios en el mapa
-  renderBarriosSidebar(barrios);
+  // Sidebar de barrios en el mapa (se actualizará con datos de riesgo en cargarStats)
+  renderBarriosSidebar(barrios, state.ultimaRiesgo || []);
 }
 
 /* ---------- Sidebar de barrios ---------- */
-function renderBarriosSidebar(barrios) {
+function renderBarriosSidebar(barrios, riesgo) {
   const ul = $('[data-js-barra-barrios]');
   if (!ul) return;
 
+  // Crear mapa de índice por barrio_id desde los datos de riesgo (stats)
+  const indicePorBarrio = {};
+  if (riesgo) {
+    riesgo.forEach((r) => { indicePorBarrio[r.id] = r.indice || 0; });
+  }
+
   const items = barrios.map((b) => {
     const n = b.nombre.length > 22 ? b.nombre.substring(0, 21) + '…' : b.nombre;
-    const idx = b.indice !== undefined ? b.indice : 0;
+    const idx = indicePorBarrio[b.id] !== undefined ? indicePorBarrio[b.id] : (b.indice !== undefined ? b.indice : 0);
     const nivel = idx >= 4 ? 'alto' : (idx >= 2 ? 'medio' : 'bajo');
     const cls = idx > 0 ? nivel : 'none';
     return `<li>
@@ -272,6 +278,8 @@ async function cargarStats() {
   state.ultimaRiesgo = stats.riesgo_barrios;
   renderMapa(stats.riesgo_barrios);
   renderMapaFiltros();
+  // Actualizar sidebar con los números actuales
+  renderBarriosSidebar(state.barrios, stats.riesgo_barrios);
 }
 
 // Cuenta cuántos barrios hay en cada nivel y lo muestra en los botones de filtro
