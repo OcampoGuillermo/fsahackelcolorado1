@@ -1,93 +1,66 @@
-# 🏆 FormosaHack 2026 — Base de Proyecto (HTML + PHP + CSS + JS + MySQL)
+# 🦟 CaszaMosqui — FormosaHack 2026
 
 > **Repositorio GitHub:** `github.com/OcampoGuillermo/fsahackelcolorado1` (rama `main`)
-> Proyecto base del equipo para el **Ultra Hackatón de 24 Horas FormosaHack 2026**.
-> Stack: **HTML + CSS + JavaScript (vanilla) + PHP 8 + MySQL (MariaDB)**, servido con XAMPP (Apache).
+> **Proyecto:** Vigilancia comunitaria contra los criaderos de mosquitos.
+> **Desafío asignado:** dificultad para identificar situaciones que favorecen
+> enfermedades transmitidas por mosquitos (área: **Salud**).
+> **Stack:** HTML + CSS + JavaScript (vanilla) + **PHP 8** + **MySQL (MariaDB)** · XAMPP (Apache).
 
-## 🧩 Qué incluye este scaffold
+## 💡 Qué resuelve
 
-| Módulo | Descripción |
-|---|---|
-| `index.php` | Dashboard principal: KPIs, filtros, tabla de reportes y formulario de alta |
-| `api/index.php` | **API REST en JSON** con front controller (`categorias`, `reportes`, `stats`) |
-| `inc/` | Conexión **PDO** a MySQL, config, helpers (`json_response`, `e()`, etc.) |
-| `database/` | `schema.sql` (estructura) + `seed.sql` (datos de ejemplo realistas) |
-| `scripts/setup.php` | Crea la BD `formosahack`, tablas y datos en **un solo comando** |
-| `docs/` | Plantillas de documentación para el jurado |
+La falta de información **accesible, organizada y comprensible** sobre los
+criaderos de mosquitos dificulta la **prevención** del dengue/zika/chikungunya y
+la **participación de la comunidad**. CaszaMosqui permite:
 
-La funcionalidad demo es un **Sistema de Reportes Comunitarios** cuyos sectores coinciden con los ejes del desafío (salud, educación, producción y ambiente, seguridad, economía), para pivotar rápido al desafío asignado.
+- 📝 **Reportar criaderos** (tipo, barrio, referencia y descripción).
+- 🗺️ **Mapa de riesgo por barrio** con semáforo en vivo (100% offline).
+- 📊 **KPIs y ranking** de criaderos más reportados.
+- 🔎 **Gestión:** pendiente → verificado → controlado (con votos de respaldo).
+- 📖 **Guía de prevención** + 🎯 **quiz de concientización** para la comunidad.
 
-## 🚀 Puesta en marcha (local con XAMPP)
+## 🚀 Puesta en marcha (XAMPP local)
 
-### 1. Requisitos
-- **XAMPP** instalado con Apache + MySQL (MariaDB) corriendo.
-
-### 2. Copiar el proyecto a htdocs
-```
-C:\xampp\htdocs\formosahack-2026\
-```
-(o crear un acceso directo/symlink hacia esta carpeta).
-
-### 3. Crear la base de datos (1 comando, con PHP)
 ```bash
+# 1. Copiar a htdocs (o enlazar esta carpeta)
+# 2. Con Apache y MySQL corriendo en XAMPP:
 C:\xampp\php\php.exe scripts\setup.php
-```
-Esto crea la BD `formosahack`, las tablas `categorias` y `reportes`, y carga datos de ejemplo.
-
-> Configuración de BD: `inc/config.php` (en XAMPP el usuario es `root` sin contraseña por defecto).
-
-### 4. Abrir la app
-```
+# 3. Abrir en el navegador:
 http://localhost/formosahack-2026/
 ```
 
-### Plan B sin Apache
-```bash
-C:\xampp\php\php.exe -S localhost:8000 -t .
-```
-→ `http://localhost:8000/`
+> Config: `inc/config.php` (XAMPP: usuario `root`, sin contraseña). La BD se llama `formosahack`.
+> Plan B sin Apache: `php -S localhost:8000 -t .`
 
-## 🔌 API REST (formato JSON)
+## 🔌 API REST
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/?route=categorias` | Lista de sectores |
-| GET | `/api/?route=reportes` | Todos los reportes (`?categoria=`, `?estado=`, `?q=`) |
-| GET | `/api/?route=reportes/{id}` | Un reporte por id |
-| POST | `/api/?route=reportes` | Crear reporte (body JSON) |
-| PATCH | `/api/?route=reportes/{id}` | Cambiar estado (`pendiente`/`en_proceso`/`resuelto`) |
+| GET | `/api/?route=tipos` | Tipos de criadero |
+| GET | `/api/?route=barrios` | Barrios del mapa |
+| GET | `/api/?route=reportes` | Criaderos (filtros `tipo`, `barrio`, `estado`, `q`) |
+| POST | `/api/?route=reportes` | Reportar criadero |
+| PATCH | `/api/?route=reportes/{id}` | Cambiar estado / sumar voto |
 | DELETE | `/api/?route=reportes/{id}` | Eliminar |
-| GET | `/api/?route=stats` | KPIs: totales, por sector y por estado |
-
-Ejemplo de creación:
-```bash
-curl -X POST "http://localhost/formosahack-2026/api/?route=reportes" ^
-  -H "Content-Type: application/json" ^
-  -d "{\"categoria_id\":2,\"titulo\":\"Barrio nuevo\",\"descripcion\":\"Falta iluminación\",\"ubicacion\":\"Formosa\"}"
-```
+| GET | `/api/?route=stats` | KPIs + índice de riesgo por barrio |
 
 ## 📁 Estructura
+
 ```
 formosahack-2026/
-├── README.md
-├── docs/               DESAFIO.md · SOLUCION.md · DEMO.md
-├── index.php           dashboard
-├── api/index.php       API REST
-├── inc/                config.php · config.example.php · db.php · helpers.php
-├── assets/             css/styles.css · js/app.js
-├── database/           schema.sql · seed.sql
-└── scripts/            setup.php
+├── index.php              Dashboard (mapa, KPIs, reportes, formulario, quiz)
+├── api/index.php          API REST (JSON, consultas preparadas)
+├── inc/                   config.php · db.php (PDO) · helpers.php
+├── assets/                css/styles.css · js/app.js
+├── database/              schema.sql · seed.sql (datos de El Colorado)
+├── scripts/setup.php      Reconstruye la BD en 1 comando
+└── docs/                  DESAFIO.md · SOLUCION.md · DEMO.md (para el jurado)
 ```
 
-## 🛠️ Guía rápida para pivotar al desafío asignado
-1. Copiar un sector → `database/seed.sql` y ajustar textos en `inc/config.php`.
-2. Crear tablas nuevas en `database/schema.sql` (o nuevas secciones).
-3. Agregar endpoints en `api/index.php` y llamadas en `assets/js/app.js`.
-4. Actualizar `docs/DESAFIO.md`, `docs/SOLUCION.md` y `docs/DEMO.md`.
-5. Commit + push a GitHub ✅
+## 🛡️ Seguridad base
+- PDO preparado (anti inyección SQL) en toda la API.
+- Salida escapada con `e()` (anti XSS).
+- `inc/config.php` no se sube a Git (se versiona `config.example.php`).
 
-## ⚠️ Seguridad base (mínimo demostrable)
-- Consultas **PDO preparadas** en toda la API (anti inyección SQL).
-- Salida escapada con `e()` (anti XSS) en todas las vistas.
-- `inc/config.php` **no se sube** a Git (ver `.gitignore`); se versiona `config.example.php`.
-- Apache: `RedirectMatch 403` sobre `inc/`, `database/` y `scripts/`.
+---
+
+*Equipo CaszaMosqui — FormosaHack 2026*

@@ -18,7 +18,7 @@ $user = 'root';
 $pass = '';
 $db   = 'formosahack';
 
-echo "== Setup FormosaHack 2026 ==\n";
+echo "== Setup CaszaMosqui (FormosaHack 2026) ==\n";
 
 $conn = @new mysqli($host, $user, $pass, '', $port);
 if ($conn->connect_error) {

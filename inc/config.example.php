@@ -12,8 +12,8 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // App
-define('APP_NAME', 'FormosaHack 2026');
-define('APP_TAGLINE', 'Solución tecnológica para la comunidad formoseña');
+define('APP_NAME', 'CaszaMosqui');
+define('APP_TAGLINE', 'Vigilancia comunitaria contra los criaderos de mosquitos');
 define('APP_VERSION', '1.0.0');
 
 // URL base del proyecto dentro de htdocs (sin barra final)

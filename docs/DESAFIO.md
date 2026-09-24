@@ -1,34 +1,43 @@
-# 🎯 DESAFIO
+# 🎯 DESAFIO — CaszaMosqui
 
-> **Sección oficial de FormosaHack 2026 — completar al recibir el desafío.**
+> **FormosaHack 2026 · Ultra Hackatón 24 h** · 24 y 25 de septiembre
+> **Área temática:** Salud
 
-## Problemática asignada
+## Problemática asignada (oficial)
 
-- **Sector:** (salud / educación / producción y ambiente / seguridad y sociedad / economía)
-- **Descripción del desafío** (copiar el enunciado oficial):
+**Nombre del desafío:** Dificultad para identificar situaciones que favorecen
+enfermedades transmitidas por mosquitos.
 
+**Enunciado:**
+> En diferentes espacios pueden existir condiciones que favorezcan la
+> proliferación de mosquitos. La **falta de información accesible, organizada y
+> comprensible** sobre estas situaciones puede dificultar las **acciones de
+> prevención** y la **participación de la comunidad**.
 
-- **Usuarios/beneficiarios:** ¿A quiénes impacta?
+## Contexto real
 
+- El **dengue, zika y chikungunya** son transmitidos por el mosquito
+  *Aedes aegypti*, que se cría en **agua limpia y estancada** en recipientes
+  cercanos a las viviendas.
+- Problemas posibles: criaderos en recipientes, neumáticos, piletas, zanjas,
+  basurales, botellas y cacharros.
+- La comunidad necesita saber **cómo identificar riesgos, dónde ocurren y qué
+  hacer** para participar de la prevención.
 
-## Problemática real (contexto local)
+## Qué resolverá CaszaMosqui (MVP)
 
-- Datos y cifras que respaldan el problema:
-
-
-- Situación actual / qué existe hoy (o no existe):
-
-
-## Qué resolveremos (MVP)
-
-- **Problema en una frase:** 
-- **Solución en una frase:** 
+- **Problema en una frase:** no hay información accesible y organizada sobre
+  dónde existen criaderos de mosquitos en los barrios.
+- **Solución en una frase:** una plataforma comunitaria donde se reportan
+  criaderos, se mapea el riesgo por barrio y se aprende a prevenir.
 - **Alcance mínimo (MVP):**
-  1. 
-  2. 
-  3. 
-- **Fuera de alcance por ahora:** 
+  1. Reporte de criaderos por tipo, barrio y referencia.
+  2. Mapa de riesgo por barrio (índice y semáforo en vivo).
+  3. Panel de gestión (pendiente → verificado → controlado).
+  4. Guía de prevención + quiz de concientización.
+- **Fuera de alcance por ahora:** geolocalización GPS con mapa real, app móvil,
+  avisos por notificación, registro de usuarios.
 
 ---
 
-*Equipo FormosaHack 2026*
+*Equipo CaszaMosqui — FormosaHack 2026*

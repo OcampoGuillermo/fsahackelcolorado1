@@ -1,5 +1,6 @@
 -- ============================================================
--- FormosaHack 2026 — Esquema de base de datos
+-- CaszaMosqui — Esquema de base de datos
+-- FormosaHack 2026 · Desafío Socioambiental: enfermedades por mosquitos
 -- Motor: MySQL / MariaDB (XAMPP)
 -- ============================================================
 
@@ -9,28 +10,43 @@ USE formosahack;
 
 -- Re-ejecutable (idempotente): elimina y recrea tablas
 DROP TABLE IF EXISTS reportes;
-DROP TABLE IF EXISTS categorias;
+DROP TABLE IF EXISTS barrios;
+DROP TABLE IF EXISTS tipos_criadero;
 
--- Sectores del desafío (salud, educación, producción y ambiente,
--- seguridad, economía)
-CREATE TABLE categorias (
+-- Tipos de situaciones que favorecen la proliferación de mosquitos
+CREATE TABLE tipos_criadero (
   id     INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(60)  NOT NULL UNIQUE,
-  color  VARCHAR(7)   NOT NULL DEFAULT '#2563eb'
+  nombre VARCHAR(80)  NOT NULL UNIQUE,
+  color  VARCHAR(7)   NOT NULL DEFAULT '#2563eb',
+  icono  VARCHAR(8)   NOT NULL DEFAULT '🦟'
 ) ENGINE = InnoDB;
 
--- Reportes de la comunidad
+-- Barrios/localidades para el mapa de riesgo esquemático
+CREATE TABLE barrios (
+  id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre    VARCHAR(80) NOT NULL UNIQUE,
+  localidad VARCHAR(80) NOT NULL DEFAULT 'El Colorado',
+  x         SMALLINT    NULL,  -- posición % horizontal para el mapa
+  y         SMALLINT    NULL,  -- posición % vertical para el mapa
+  poblacion INT UNSIGNED NOT NULL DEFAULT 0
+) ENGINE = InnoDB;
+
+-- Reportes de criaderos detectados por la comunidad
 CREATE TABLE reportes (
-  id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  categoria_id INT UNSIGNED NOT NULL,
-  titulo       VARCHAR(120) NOT NULL,
-  descripcion  TEXT         NOT NULL,
-  ubicacion    VARCHAR(120) NOT NULL DEFAULT 'Formosa',
-  estado       ENUM('pendiente','en_proceso','resuelto') NOT NULL DEFAULT 'pendiente',
-  votos        INT UNSIGNED NOT NULL DEFAULT 0,
-  creado_en    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_reporte_categoria FOREIGN KEY (categoria_id)
-    REFERENCES categorias (id) ON DELETE CASCADE,
-  INDEX idx_reporte_categoria (categoria_id),
+  id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  tipo_id     INT UNSIGNED NOT NULL,
+  barrio_id   INT UNSIGNED NOT NULL,
+  titulo      VARCHAR(120) NOT NULL,
+  descripcion TEXT         NOT NULL,
+  referencia  VARCHAR(120) NOT NULL DEFAULT '', -- punto de referencia (calle, plaza…)
+  estado      ENUM('pendiente','verificado','controlado') NOT NULL DEFAULT 'pendiente',
+  votos       INT UNSIGNED NOT NULL DEFAULT 0,
+  creado_en   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_reporte_tipo   FOREIGN KEY (tipo_id)
+    REFERENCES tipos_criadero (id) ON DELETE CASCADE,
+  CONSTRAINT fk_reporte_barrio FOREIGN KEY (barrio_id)
+    REFERENCES barrios (id) ON DELETE CASCADE,
+  INDEX idx_reporte_tipo   (tipo_id),
+  INDEX idx_reporte_barrio (barrio_id),
   INDEX idx_reporte_estado (estado)
 ) ENGINE = InnoDB;
