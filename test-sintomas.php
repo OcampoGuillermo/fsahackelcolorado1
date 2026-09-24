@@ -11,6 +11,8 @@ require_once __DIR__ . '/inc/helpers.php';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Test de Síntomas · <?= e(APP_NAME) ?></title>
+  <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css">
   <style>
     .test-container { max-width: 720px; margin: 0 auto; }
@@ -32,10 +34,8 @@ require_once __DIR__ . '/inc/helpers.php';
     .resultado.ok { display: block; background: #f0fdf4; border: 2px solid var(--verde); color: #166534; }
     .resultado h2 { margin: 0 0 12px; font-size: 1.4rem; }
     .resultado p { margin: 0 0 16px; font-size: 1rem; line-height: 1.6; }
-    .resultado .btn-volver { background: var(--acento); color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; transition: background .15s; }
-    .resultado .btn-volver:hover { background: var(--acento-oscuro); }
-    .btn-volver-inicio { display: inline-block; margin-bottom: 16px; padding: 10px 16px; background: var(--suave); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background .15s; }
-    .btn-volver-inicio:hover { background: #475569; }
+    
+    
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
@@ -44,7 +44,7 @@ require_once __DIR__ . '/inc/helpers.php';
 <header class="topbar">
   <div class="container">
     <div class="brand">
-      <span class="logo">🦟</span>
+      <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-img">
       <div>
         <h1><?= e(APP_NAME) ?></h1>
         <p>Test de Síntomas — Detección temprana</p>
@@ -55,7 +55,10 @@ require_once __DIR__ . '/inc/helpers.php';
 
 <main class="container test-container">
 
-  <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
+  <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>
 
   <section class="test-card">
     <h3>🩺 Verificá tus síntomas</h3>
@@ -140,7 +143,7 @@ require_once __DIR__ . '/inc/helpers.php';
       <li><strong>Hospital Distrital El Colorado</strong> — Guardia 24h</li>
       <li><strong>Centro de Salud "Dr. Ramón Carrillo"</strong> — Av. San Martín</li>
       <li><strong>CAPS Barrio San Martín</strong> — Calle 25 de Mayo</li>
-      <li><strong>CAPS Barrio Kennedy</strong> — Ruta 81</li>
+      <li><strong>CAPS Barrio 2 de Abril</strong> — Calle 25 de Mayo</li>
     </ul>
     <p style="margin-top: 12px; font-size: .9rem; color: var(--suave);">
       🚨 <strong>Si tenés síntomas de ALERTA (rojos), no esperes: andá ya a la guardia.</strong>
@@ -180,7 +183,10 @@ require_once __DIR__ . '/inc/helpers.php';
            (dengue grave / shock).<br>
            No te automediques. No esperes a que pase.<br>
            <strong>Andá YA a la guardia más cercana.</strong></p>
-        <a href="${window.BASE_URL || '/formosahack-2026'}/" class="btn-volver">Volver al inicio</a>`;
+        <a href="${window.BASE_URL || '/formosahack-2026'}/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>`;
     } else if (total >= 3) {
       res.className = 'resultado alerta';
       res.innerHTML = `
@@ -188,7 +194,10 @@ require_once __DIR__ . '/inc/helpers.php';
         <p>Tenés <strong>${total} síntoma(s)</strong> compatibles con dengue/zika/chikungunya.
            Aunque no tengas signos de alarma, <strong>requerís evaluación médica</strong>
            para confirmar y recibir tratamiento.</p>
-        <a href="${window.BASE_URL || '/formosahack-2026'}/" class="btn-volver">Volver al inicio</a>`;
+        <a href="${window.BASE_URL || '/formosahack-2026'}/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>`;
     } else if (total > 0) {
       res.className = 'resultado ok';
       res.innerHTML = `
@@ -196,14 +205,20 @@ require_once __DIR__ . '/inc/helpers.php';
         <p>Tenés <strong>${total} síntoma(s)</strong> leves. Podría ser inicio de dengue u otra enfermedad.
            <strong>Controlá tu temperatura</strong> y si aparece fiebre alta o alguno de los
            síntomas de ALERTA (rojos), <strong>andá al centro de salud</strong>.</p>
-        <a href="${window.BASE_URL || '/formosahack-2026'}/" class="btn-volver">Volver al inicio</a>`;
+        <a href="${window.BASE_URL || '/formosahack-2026'}/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>`;
     } else {
       res.className = 'resultado ok';
       res.innerHTML = `
         <h2>👍 Sin síntomas marcados</h2>
         <p>No seleccionaste ningún síntoma. Seguí usando repelente, descacharrando
            y participando en CaszaMosqui reportando criaderos.</p>
-        <a href="${window.BASE_URL || '/formosahack-2026'}/" class="btn-volver">Volver al inicio</a>`;
+        <a href="${window.BASE_URL || '/formosahack-2026'}/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>`;
     }
   });
 </script>

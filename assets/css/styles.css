@@ -50,6 +50,34 @@ body {
 .topbar nav a:hover { background: rgba(255, 255, 255, .16); }
 .topbar nav a.active { background: rgba(255, 255, 255, .24); font-weight: 600; }
 
+/* ---------- Logo ---------- */
+.logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+
+/* ---------- Botón Volver Al Inicio (esquina superior derecha de cada panel) ---------- */
+.panel { position: relative; }
+.btn-volver-inicio {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--suave);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s, transform .1s;
+  z-index: 10;
+}
+.btn-volver-inicio:hover { background: #475569; transform: translateY(-1px); }
+.btn-volver-inicio:active { transform: translateY(0); }
+.btn-volver-inicio svg { width: 16px; height: 16px; }
+
 /* ---------- Hero ---------- */
 .hero {
   background: linear-gradient(135deg, #e0f2fe, #ccfbf1);

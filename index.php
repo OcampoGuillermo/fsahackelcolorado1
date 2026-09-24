@@ -12,6 +12,8 @@ require_once __DIR__ . '/inc/helpers.php';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e(APP_NAME) ?> · <?= e(APP_TAGLINE) ?></title>
+  <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/clima.css">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/mapa-plano.css">
@@ -21,7 +23,7 @@ require_once __DIR__ . '/inc/helpers.php';
 <header class="topbar">
   <div class="container">
     <div class="brand">
-      <span class="logo">🦟</span>
+      <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-img">
       <div>
         <h1><?= e(APP_NAME) ?></h1>
         <p><?= e(APP_TAGLINE) ?></p>
@@ -58,7 +60,10 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- MAPA DE RIESGO -->
   <section class="panel" id="mapa">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>
     <div class="panel-head">
       <h2>🗺️ Mapa de riesgo por barrio</h2>
       <div class="mapa-filtros" role="group" aria-label="Filtrar barrios por nivel de riesgo">
@@ -86,7 +91,10 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- TIPOS MÁS COMUNES -->
   <section class="panel">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>
     <h2>🐞 Criaderos más reportados</h2>
     <div class="sectores" data-js-tipos>
       <p class="loading">Cargando…</p>
@@ -95,7 +103,10 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- REPORTES -->
   <section class="panel" id="reportes">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>
     <div class="panel-head">
       <h2>📋 Criaderos reportados por la comunidad</h2>
       <form class="filtros" data-js-filtros>
@@ -122,7 +133,10 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- FORMULARIO -->
   <section class="panel" id="nuevo">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>
     <h2>📢 Reportar un criadero</h2>
     <p class="sub">Elegí el tipo de situación y el barrio. Tu reporte se suma al mapa de riesgo al instante.</p>
     <form data-js-form>
@@ -155,7 +169,10 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- PREVENCIÓN -->
   <section class="panel" id="prevencion">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>
     <h2>📖 Guía rápida de prevención</h2>
     <p class="sub">El mosquito <strong>Aedes aegypti</strong> se cría en <strong>agua limpia y estancada</strong> cerca de casas. Eliminá sus criaderos:</p>
     <div class="tips">
@@ -171,7 +188,10 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- QUIZ -->
   <section class="panel" id="quiz">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Volver Al Inicio
+    </a>
     <h2>🎯 ¿Cuánto sabés sobre prevención?</h2>
     <p class="sub">Respondé el quiz y recibí tu veredicto. Compartilo con tu barrio para frenar al mosquito. 🦟</p>
     <div data-js-quiz>
