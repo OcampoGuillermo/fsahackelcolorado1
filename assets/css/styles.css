@@ -90,14 +90,10 @@ body {
 /* ---------- Mapa ---------- */
 .mapa {
   position: relative;
-  height: 440px;
+  height: 560px;
   border-radius: 12px;
-  border: 2px dashed #cbd5e1;
-  background:
-    linear-gradient(rgba(148, 163, 184, .09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, .09) 1px, transparent 1px),
-    radial-gradient(circle at 50% 50%, #f0fdfa, #f8fafc);
-  background-size: 28px 28px, 28px 28px, 100% 100%;
+  border: 2px solid #cbd5e1;
+  background: url('../img/mapa-el-colorado.png') center / cover no-repeat #f8fafc;
   overflow: hidden;
 }
 .mapa-node {
@@ -125,6 +121,9 @@ body {
 .dot.alto { background: var(--rojo); } .dot.medio { background: var(--ambar); } .dot.bajo { background: var(--verde); }
 .mapa-nota { font-size: .84rem; color: var(--suave); margin: 12px 0 0; }
 .mapa-seleccionado { color: var(--acento); font-weight: 600; }
+
+/* Asegurar que el contenedor del mapa respete la proporción de la imagen */
+.mapa { width: 100%; max-width: 100%; }
 
 /* ---------- KPIs ---------- */
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 22px; }
