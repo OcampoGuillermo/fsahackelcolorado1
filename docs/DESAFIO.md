@@ -35,7 +35,7 @@ enfermedades transmitidas por mosquitos.
   2. Mapa de riesgo por barrio (índice y semáforo en vivo).
   3. Panel de gestión (pendiente → verificado → controlado).
   4. Guía de prevención + quiz de concientización.
-- **Fuera de alcance por ahora:** geolocalización GPS con mapa real, app móvil,
+- **Fuera de alcance por ahora:** geolocalización GPS exacta del criadero, app móvil,
   avisos por notificación, registro de usuarios.
 
 ---

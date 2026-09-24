@@ -13,6 +13,8 @@ require_once __DIR__ . '/inc/helpers.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e(APP_NAME) ?> · <?= e(APP_TAGLINE) ?></title>
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/clima.css">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/mapa-plano.css">
 </head>
 <body>
 
@@ -31,6 +33,7 @@ require_once __DIR__ . '/inc/helpers.php';
       <a href="#" data-nav="nuevo">+ Reportar</a>
       <a href="#" data-nav="prevencion">Prevención</a>
       <a href="#" data-nav="quiz">Quiz</a>
+      <a href="<?= e(BASE_URL) ?>/test-sintomas.php">Test de Síntomas</a>
     </nav>
   </div>
 </header>
@@ -48,26 +51,28 @@ require_once __DIR__ . '/inc/helpers.php';
     <div class="hero-kpis" data-js-hero-kpis></div>
   </section>
 
+  <!-- ALERTA CLIMÁTICA -->
+  <section class="panel" id="clima">
+    <p class="loading">Cargando datos climáticos…</p>
+  </section>
+
   <!-- MAPA DE RIESGO -->
   <section class="panel" id="mapa">
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
     <div class="panel-head">
       <h2>🗺️ Mapa de riesgo por barrio</h2>
-      <div class="leyenda">
-        <span><i class="dot alto"></i> Riesgo alto</span>
-        <span><i class="dot medio"></i> Riesgo medio</span>
-        <span><i class="dot bajo"></i> Riesgo bajo</span>
+      <div class="mapa-filtros" role="group" aria-label="Filtrar barrios por nivel de riesgo">
+        <button type="button" data-nivel="todos" class="activo">Todos</button>
+        <button type="button" data-nivel="alto"><i class="dot alto"></i> Alto</button>
+        <button type="button" data-nivel="medio"><i class="dot medio"></i> Medio</button>
+        <button type="button" data-nivel="bajo"><i class="dot bajo"></i> Bajo</button>
       </div>
     </div>
-    <div class="mapa-filtros" data-mapa-filtros>
-      <button data-nivel="todos" class="activo">Todos</button>
-      <button data-nivel="alto">Riesgo alto</button>
-      <button data-nivel="medio">Riesgo medio</button>
-      <button data-nivel="bajo">Riesgo bajo</button>
-    </div>
-    <div class="mapa" data-js-mapa aria-label="Mapa esquemático de riesgo por barrio">
+    <div class="mapa plano" data-js-mapa aria-label="Plano de barrios de El Colorado con el riesgo de cada barrio">
       <p class="loading">Cargando mapa…</p>
     </div>
-    <p class="mapa-nota">Mapa del plano oficial generado en vivo según los reportes de la comunidad.
+    <p class="mapa-nota">Plano oficial de barrios de El Colorado. El número de cada burbuja son los criaderos
+       sin controlar; el color combina esos criaderos con el clima de la semana.
        <strong>Clic en un barrio</strong> para ver sus criaderos.</p>
   </section>
 
@@ -81,6 +86,7 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- TIPOS MÁS COMUNES -->
   <section class="panel">
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
     <h2>🐞 Criaderos más reportados</h2>
     <div class="sectores" data-js-tipos>
       <p class="loading">Cargando…</p>
@@ -89,6 +95,7 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- REPORTES -->
   <section class="panel" id="reportes">
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
     <div class="panel-head">
       <h2>📋 Criaderos reportados por la comunidad</h2>
       <form class="filtros" data-js-filtros>
@@ -115,6 +122,7 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- FORMULARIO -->
   <section class="panel" id="nuevo">
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
     <h2>📢 Reportar un criadero</h2>
     <p class="sub">Elegí el tipo de situación y el barrio. Tu reporte se suma al mapa de riesgo al instante.</p>
     <form data-js-form>
@@ -129,7 +137,7 @@ require_once __DIR__ . '/inc/helpers.php';
         </label>
         <label>
           Referencia
-          <input type="text" name="referencia" placeholder="Calle, plaza, escuela…">
+          <input type="text" name="referencia" placeholder="Ej.: Pueyrredón y Cayo Novoa Gil">
         </label>
       </div>
       <label>
@@ -147,6 +155,7 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- PREVENCIÓN -->
   <section class="panel" id="prevencion">
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
     <h2>📖 Guía rápida de prevención</h2>
     <p class="sub">El mosquito <strong>Aedes aegypti</strong> se cría en <strong>agua limpia y estancada</strong> cerca de casas. Eliminá sus criaderos:</p>
     <div class="tips">
@@ -162,6 +171,7 @@ require_once __DIR__ . '/inc/helpers.php';
 
   <!-- QUIZ -->
   <section class="panel" id="quiz">
+    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">← Volver Al Inicio</a>
     <h2>🎯 ¿Cuánto sabés sobre prevención?</h2>
     <p class="sub">Respondé el quiz y recibí tu veredicto. Compartilo con tu barrio para frenar al mosquito. 🦟</p>
     <div data-js-quiz>
@@ -181,6 +191,8 @@ require_once __DIR__ . '/inc/helpers.php';
 <script>
   window.BASE_URL = <?= json_encode(BASE_URL) ?>;
 </script>
+<script src="<?= e(BASE_URL) ?>/assets/js/clima.js"></script>
+<script src="<?= e(BASE_URL) ?>/assets/js/calles.js"></script>
 <script src="<?= e(BASE_URL) ?>/assets/js/app.js"></script>
 </body>
 </html>

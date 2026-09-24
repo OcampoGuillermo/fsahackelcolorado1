@@ -15,19 +15,25 @@
 
 ## 3. Recorrido en vivo (2 min) — ¡lo más importante! ⭐
 
-1. **Mapa de riesgo:** mostrar los barrios con colores (alto/medio/bajo) y el
-   número de criaderos activos. **Hacer clic en un barrio** → lista filtrada.
-2. **KPIs:** totales reportados / sin controlar / verificados / controlados y %
+1. **Alerta climática:** "Con la lluvia y el calor de estas dos semanas, el riesgo
+   climático está en ___: cada criadero pesa más". Mostrar el gráfico de lluvia.
+2. **Mapa de riesgo sobre el plano oficial de El Colorado:** barrios con semáforo y
+   número de criaderos sin controlar. Tocar **"Alto"** → quedan solo los barrios en
+   rojo. **Clic en El Arco** → lista filtrada de ese barrio.
+3. **KPIs:** totales reportados / sin controlar / verificados / controlados y %
    de controlados (conectados a la base real).
-3. **Criaderos más reportados:** ranking por tipo (iconos y colores).
-4. **Crear un reporte en vivo:** elegir tipo + barrio + descripción →
-   aparece al instante en el mapa y en la lista (**POST**).
-5. **Gestionar:** verificar → controlar el reporte (los KPIs y el mapa cambian
+4. **Criaderos más reportados:** ranking por tipo (iconos y colores).
+5. **Crear un reporte en vivo:** elegir tipo + **barrio** → en "referencia" aparecen
+   las **calles reales del barrio** → aparece al instante en el mapa (**POST**).
+   Tip: reportar en un barrio en amarillo para que el jurado lo vea pasar a rojo.
+6. **Gestionar:** verificar → controlar el reporte (los KPIs y el mapa cambian
    en vivo) (**PATCH**).
-6. **Votar:** 👍 suma votos (participación).
-7. **Prevención y quiz:** mostrar la guía y responder el quiz (concientización).
+7. **Votar:** 👍 suma votos (participación).
+8. **Prevención y quiz:** mostrar la guía y responder el quiz (concientización).
 
 ## 4. Valor e impacto (1 min) 📈
+- **Alerta anticipada:** cruza cada reporte con la lluvia y la temperatura reales de la semana.
+- Trabajamos sobre el **plano oficial** de El Colorado: 28 barrios y 147 calles reales.
 - Información **accesible y comprensible** (mapa + semáforo + guía).
 - **Participación real de la comunidad** (reportar, votar, aprender).
 - Cero costos de infraestructura: funciona en una PC local con XAMPP.
@@ -43,6 +49,7 @@
 # 2. Con Apache y MySQL corriendo:
 C:\xampp\php\php.exe scripts\setup.php
 # 3. Abrir: http://localhost/formosahack-2026/
+#    Clima: http://localhost/formosahack-2026/api/clima.php
 #    API de ejemplo: http://localhost/formosahack-2026/api/?route=stats
 ```
 

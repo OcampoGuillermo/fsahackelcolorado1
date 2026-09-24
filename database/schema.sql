@@ -21,13 +21,13 @@ CREATE TABLE tipos_criadero (
   icono  VARCHAR(8)   NOT NULL DEFAULT '🦟'
 ) ENGINE = InnoDB;
 
--- Barrios/localidades para el mapa de riesgo esquemático
+-- Barrios de El Colorado ubicados sobre el plano oficial (assets/img/plano-el-colorado.jpg)
 CREATE TABLE barrios (
   id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre    VARCHAR(80) NOT NULL UNIQUE,
   localidad VARCHAR(80) NOT NULL DEFAULT 'El Colorado',
-  x         SMALLINT    NULL,  -- posición % horizontal para el mapa
-  y         SMALLINT    NULL,  -- posición % vertical para el mapa
+  x         DECIMAL(5,1) NULL,  -- posición % horizontal sobre el plano
+  y         DECIMAL(5,1) NULL,  -- posición % vertical sobre el plano
   poblacion INT UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE = InnoDB;
 

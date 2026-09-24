@@ -13,7 +13,9 @@ criaderos de mosquitos dificulta la **prevención** del dengue/zika/chikungunya 
 la **participación de la comunidad**. CaszaMosqui permite:
 
 - 📝 **Reportar criaderos** (tipo, barrio, referencia y descripción).
-- 🗺️ **Mapa de riesgo por barrio** con semáforo en vivo (100% offline).
+- 🗺️ **Mapa de riesgo sobre el plano oficial de El Colorado** (28 barrios) con semáforo en vivo (100% offline).
+- 🌧️ **Alerta climática:** lluvia y temperatura reales (Open-Meteo) que suben el riesgo de los barrios con criaderos.
+- 🧭 **147 calles reales** sugeridas al reportar (según el barrio elegido).
 - 📊 **KPIs y ranking** de criaderos más reportados.
 - 🔎 **Gestión:** pendiente → verificado → controlado (con votos de respaldo).
 - 📖 **Guía de prevención** + 🎯 **quiz de concientización** para la comunidad.
@@ -42,6 +44,7 @@ http://localhost/formosahack-2026/
 | PATCH | `/api/?route=reportes/{id}` | Cambiar estado / sumar voto |
 | DELETE | `/api/?route=reportes/{id}` | Eliminar |
 | GET | `/api/?route=stats` | KPIs + índice de riesgo por barrio |
+| GET | `/api/clima.php` | Lluvia, temperatura y nivel de riesgo climático |
 
 ## 📁 Estructura
 
@@ -49,11 +52,12 @@ http://localhost/formosahack-2026/
 formosahack-2026/
 ├── index.php              Dashboard (mapa, KPIs, reportes, formulario, quiz)
 ├── api/index.php          API REST (JSON, consultas preparadas)
+├── api/clima.php          Alerta climática (Open-Meteo + caché)
 ├── inc/                   config.php · db.php (PDO) · helpers.php
-├── assets/                css/styles.css · js/app.js
+├── assets/                css/ · js/app.js, clima.js, calles.js · img/plano-el-colorado.jpg
 ├── database/              schema.sql · seed.sql (datos de El Colorado)
 ├── scripts/setup.php      Reconstruye la BD en 1 comando
-└── docs/                  DESAFIO.md · SOLUCION.md · DEMO.md (para el jurado)
+└── docs/                  DESAFIO.md · SOLUCION.md · DEMO.md · CALLES.md (para el jurado)
 ```
 
 ## 🛡️ Seguridad base

@@ -205,35 +205,61 @@ async function cargarStats() {
         <div class="sector" style="--color:${ESCAPAR(t.color)}">
           <span class="icono">${t.icono}</span>
           <strong>${t.total}</strong>
-          <span>${ESCAPAR(t.nombre)}</span>
+          <span>${ESCAPAR(t.nombre || t.tipo)}</span>
         </div>`).join('')
       || '<p class="placeholder">Aún no hay reportes.</p>';
   }
 
   state.ultimaRiesgo = stats.riesgo_barrios;
   renderMapa(stats.riesgo_barrios);
+  renderMapaFiltros();
+}
+
+// Cuenta cuántos barrios hay en cada nivel y lo muestra en los botones de filtro
+function renderMapaFiltros() {
+  const riesgo = state.ultimaRiesgo || [];
+  const cuenta = { alto: 0, medio: 0, bajo: 0 };
+  riesgo.forEach((b) => { cuenta[nivelBarrio(b)]++; });
+  $$('#mapa .mapa-filtros button[data-nivel]').forEach((btn) => {
+    const n = btn.dataset.nivel;
+    let badge = $('.cuenta', btn);
+    if (n === 'todos') return;
+    if (!badge) { badge = document.createElement('span'); badge.className = 'cuenta'; btn.appendChild(badge); }
+    badge.textContent = cuenta[n];
+  });
+}
+
+// Nivel final del barrio = criaderos sin controlar + bonus climático (clima.js).
+// Si el clima todavía no cargó (o falla), se usa el nivel que calcula la API.
+function nivelBarrio(b) {
+  const activos = Number(b.indice) || 0;
+  if (window.riesgoConClima && window.CaszaClima && window.CaszaClima.listo) {
+    return window.riesgoConClima(activos).nivel;
+  }
+  return b.nivel in NIVELES ? b.nivel : 'bajo';
 }
 
 function renderMapa(riesgo) {
   const mapa = $('[data-js-mapa]');
   if (!mapa) return;
 
-  const maxActivos = Math.max(1, ...riesgo.map((b) => b.indice));
   const filtroNivel = state.mapaFiltroNivel || 'todos';
+  const bonus = (window.CaszaClima && window.CaszaClima.listo) ? window.CaszaClima.bonus : 0;
 
   mapa.innerHTML = riesgo.map((b) => {
-    const nivel = b.nivel in NIVELES ? b.nivel : 'bajo';
-    // Ocultar si no coincide con el filtro de nivel
+    const activos = Number(b.indice) || 0;
+    const nivel = nivelBarrio(b);
     const oculto = (filtroNivel !== 'todos' && filtroNivel !== nivel) ? ' oculto' : '';
-    const size = 40 + Math.round((b.indice / maxActivos) * 42);
-    const sel = state.filtros.barrio == b.id ? ' mapa-seleccionado' : '';
-    // Burbuja muestra el nombre del barrio (truncado si es muy largo)
-    const nombreCorto = b.nombre.length > 16 ? b.nombre.substring(0, 15) + '…' : b.nombre;
+    const vacio = activos === 0 ? ' none' : '';
+    const sel = state.filtros.barrio == b.id ? ' activo' : '';
+    const extraClima = activos > 0 && bonus > 0 ? ` (+${bonus} por clima)` : '';
+    // La burbuja muestra los criaderos sin controlar; el nombre aparece al pasar el mouse
     return `
-      <button class="mapa-node ${nivel}${sel}${oculto}" style="left:${b.x}%;top:${b.y}%"
+      <button type="button" class="mapa-node ${nivel}${vacio}${sel}${oculto}" style="left:${b.x}%;top:${b.y}%"
               data-barrio="${b.id}" data-nivel="${nivel}"
-              title="${ESCAPAR(b.nombre)}: ${b.indice} criadero(s) sin controlar">
-        <span class="burbuja" style="min-width:${size}px;height:${size}px">${ESCAPAR(nombreCorto)}</span>
+              title="${ESCAPAR(b.nombre)}: ${activos} criadero(s) sin controlar${extraClima} · ${NIVELES[nivel].label}">
+        <span class="burbuja">${activos}</span>
+        <span class="nombre">${ESCAPAR(b.nombre)}</span>
       </button>`;
   }).join('');
 
@@ -372,6 +398,8 @@ function bind() {
     const node = ev.target.closest('[data-barrio]');
     if (!node) return;
     state.filtros.barrio = state.filtros.barrio == node.dataset.barrio ? '' : node.dataset.barrio;
+    const selBarrio = $('[data-js-filtros] select[name=barrio]');
+    if (selBarrio) selBarrio.value = state.filtros.barrio;   // mantener el filtro visible sincronizado
     renderMapa(state.ultimaRiesgo || []);
     cargarReportes();
     $('#reportes').scrollIntoView({ behavior: 'smooth' });
@@ -403,16 +431,18 @@ function bind() {
   $('[data-js-reportes]')?.addEventListener('click', (ev) => {
     const target = ev.target.closest('button');
     if (!target) return;
-    if (target.dataset.estado) cambiarEstado(target.dataset.id, target.dataset.sig);
-    if (target.dataset.voto) votarReporte(target.dataset.id);
-    if (target.dataset.eliminar) eliminarReporte(target.dataset.id);
+    // Los atributos data-estado / data-voto / data-eliminar no tienen valor (dataset = ""),
+    // por eso se pregunta si existen con hasAttribute y no por su valor.
+    if (target.hasAttribute('data-estado')) cambiarEstado(target.dataset.id, target.dataset.sig);
+    if (target.hasAttribute('data-voto')) votarReporte(target.dataset.id);
+    if (target.hasAttribute('data-eliminar')) eliminarReporte(target.dataset.id);
   });
 
   // Quiz
   $('[data-js-quiz]')?.addEventListener('click', (ev) => {
     const respuesta = ev.target.closest('[data-js-respuesta]');
     if (respuesta && !respuesta.disabled) responderQuiz(respuesta);
-    if (ev.target.dataset.jsQuizReiniciar) {
+    if (ev.target.closest('[data-js-quiz-reiniciar]')) {
       state.quizIndex = 0; state.quizScore = 0; state.quizDone = false;
       renderQuiz();
     }
@@ -428,6 +458,12 @@ function bind() {
     btn.classList.add('activo');
     // Re-renderizar mapa con filtro
     renderMapa(state.ultimaRiesgo || []);
+  });
+
+  // Cuando llegan los datos de clima, recalcular el semáforo
+  document.addEventListener('clima:listo', () => {
+    renderMapa(state.ultimaRiesgo || []);
+    renderMapaFiltros();
   });
 }
 

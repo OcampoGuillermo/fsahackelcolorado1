@@ -39,12 +39,24 @@ MySQL (formosahack: tipos_criadero, barrios, reportes)
 | `barrios` | id, nombre, localidad, x, y, poblacion | Barrios con posición esquemática para el mapa |
 | `reportes` | id, tipo_id, barrio_id, titulo, descripcion, referencia, estado, votos, creado_en | Criaderos reportados por la comunidad |
 
-## Índice de riesgo por barrio (fórmula documentada)
+## Mapa: plano oficial de El Colorado
+
+- Fondo: **plano municipal de barrios actualizado** (28 barrios), guardado como imagen local → funciona sin internet.
+- Cada barrio tiene su posición `x, y` (en %) sobre el plano, en la tabla `barrios`.
+- **147 calles reales** por barrio (`assets/js/calles.js`, `docs/CALLES.md`): el campo "referencia" del formulario sugiere las calles del barrio elegido.
+
+## Índice de riesgo por barrio = criaderos × clima (fórmula documentada)
 
 - **Activos** = criaderos en estado `pendiente` o `verificado` (sin controlar).
-- **Índice de riesgo activo del barrio** = cantidad de criaderos sin controlar.
+- **Riesgo climático** (`api/clima.php`, datos de Open-Meteo, caché de 1 h), puntaje 0-5:
+  - Lluvia últimos 14 días: ≥ 50 mm → +2 · ≥ 20 mm → +1
+  - Temperatura media 7 días: 22-32 °C → +2 · 18-22 o 32-35 °C → +1
+  - Lluvia prevista próximos días ≥ 10 mm → +1
+  - Nivel climático: 4-5 alto (bonus +2) · 2-3 medio (+1) · 0-1 bajo (+0)
+- **Índice del barrio** = activos + bonus climático (solo si hay criaderos activos: el clima potencia los criaderos que existen, no los crea).
 - **Nivel (semáforo):** 🔴 alto = 4 o más · 🟠 medio = 2-3 · 🟢 bajo = 0-1.
-- Se calcula en tiempo real en el endpoint `/api/?route=stats`.
+- **Por qué:** el *Aedes aegypti* eclosiona después de las lluvias y completa su ciclo en ~7-10 días con calor. El mismo criadero es más peligroso tras una semana lluviosa y cálida → **alerta anticipada**, no solo registro.
+- Los activos se calculan en `/api/?route=stats`; el bonus climático se aplica en el navegador (`app.js` + `clima.js`).
 
 ## API REST
 
@@ -63,7 +75,8 @@ MySQL (formosahack: tipos_criadero, barrios, reportes)
 
 | Decisión | Elegida | Por qué |
 |---|---|---|
-| Mapas | Mapa esquemático propio (CSS + datos x/y) | 100% offline en el evento, demo garantizada |
+| Mapas | Plano oficial de barrios como imagen + posiciones x/y en % | Mapa real de El Colorado, 100% offline, demo garantizada |
+| Clima | Open-Meteo (gratis, sin clave) con caché | Alerta anticipada según lluvia y temperatura reales |
 | Seguridad | PDO preparado + `e()` anti-XSS | Protección básica demostrable |
 | Participación | Reportes + votos + quiz | Involucra a la comunidad (requisito del desafío) |
 | Despliegue | XAMPP + GitHub | Entregables pedidos por la organización |
@@ -72,7 +85,7 @@ MySQL (formosahack: tipos_criadero, barrios, reportes)
 
 | Riesgo | Mitigación |
 |---|---|
-| Sin internet en el evento | Sin CDNs ni APIs externas; todo local |
+| Sin internet en el evento | Única API externa (clima) con caché + datos de respaldo; el resto 100% local |
 | MySQL no arranca | `scripts/setup.php` reconstruye la BD en 1 comando |
 | Demo en vivo falla | Capturas + gif de respaldo en `docs/DEMO.md` |
 

@@ -133,6 +133,19 @@ body {
 .mapa-node.medio .burbuja  { background: var(--ambar); }
 .mapa-node.bajo .burbuja   { background: var(--verde); }
 .mapa-node.none .burbuja   { background: #94a3b8; }
+.mapa-node .nombre {
+  margin-top: 6px;
+  font-size: .7rem;
+  font-weight: 800;
+  color: #0f172a;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, .18);
+  white-space: nowrap;
+  text-shadow: 0 1px 0 #fff;
+}
 .leyenda { display: flex; gap: 16px; font-size: .82rem; color: var(--suave); }
 .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
 .dot.alto { background: var(--rojo); } .dot.medio { background: var(--ambar); } .dot.bajo { background: var(--verde); }

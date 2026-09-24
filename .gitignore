@@ -11,3 +11,5 @@ Thumbs.db
 # Backups de BD
 database/*.sql.gz
 database/*.dump
+# Caché del clima (se genera sola)
+cache/
