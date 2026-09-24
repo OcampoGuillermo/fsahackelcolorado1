@@ -57,6 +57,11 @@ const state = {
   quizScore: 0,
   quizDone: false,
   mapaFiltroNivel: 'todos',
+  // Zoom/pan state
+  mapaZoom: 1,
+  mapaPanX: 0,
+  mapaPanY: 0,
+  mapaEnfocadoBarrio: null,
 };
 
 /* ---------- Límite diario (1 interacción por dispositivo) ---------- */
@@ -293,31 +298,80 @@ function nivelBarrio(b) {
   return b.nivel in NIVELES ? b.nivel : 'bajo';
 }
 
+/* ---------- Zoom/pan helpers ---------- */
+function aplicarTransformMapa() {
+  const imagen = $('[data-js-mapa-imagen]');
+  const burbujas = $('[data-js-mapa-burbujas]');
+  if (!imagen || !burbujas) return;
+  const t = `translate(${state.mapaPanX}px, ${state.mapaPanY}px) scale(${state.mapaZoom})`;
+  imagen.style.transform = t;
+  burbujas.style.transform = t;
+}
+
+function resetZoom() {
+  state.mapaZoom = 1;
+  state.mapaPanX = 0;
+  state.mapaPanY = 0;
+  state.mapaEnfocadoBarrio = null;
+  aplicarTransformMapa();
+}
+
+function zoomEnBarrio(barrio) {
+  if (!barrio) { resetZoom(); return; }
+  const wrapper = $('.mapa-wrapper');
+  if (!wrapper) return;
+  const rect = wrapper.getBoundingClientRect();
+  const centroX = rect.width / 2;
+  const centroY = rect.height / 2;
+  // Zoom nivel 2.5
+  state.mapaZoom = 2.5;
+  // Centrar el barrio en el viewport
+  state.mapaPanX = centroX - (barrio.x / 100) * rect.width * state.mapaZoom;
+  state.mapaPanY = centroY - (barrio.y / 100) * rect.height * state.mapaZoom;
+  state.mapaEnfocadoBarrio = barrio.id;
+  aplicarTransformMapa();
+}
+
+function aplicarZoom(delta) {
+  const nuevoZoom = Math.max(1, Math.min(4, state.mapaZoom * delta));
+  if (nuevoZoom === state.mapaZoom) return;
+  state.mapaZoom = nuevoZoom;
+  if (nuevoZoom === 1) { resetZoom(); return; }
+  aplicarTransformMapa();
+}
+
+/* ---------- Render mapa con zoom/pan ---------- */
 function renderMapa(riesgo) {
-  const mapa = $('[data-js-mapa]');
-  if (!mapa) return;
+  const contenedorBurbujas = $('[data-js-mapa-burbujas]');
+  const imagen = $('[data-js-mapa-imagen]');
+  if (!contenedorBurbujas || !imagen) return;
 
   const filtroNivel = state.mapaFiltroNivel || 'todos';
   const bonus = (window.CaszaClima && window.CaszaClima.listo) ? window.CaszaClima.bonus : 0;
 
-  mapa.innerHTML = riesgo.map((b) => {
+  // La imagen de fondo ya está en CSS, no hace falta tocarla
+  // Solo renderizamos las burbujas
+  contenedorBurbujas.innerHTML = riesgo.map((b) => {
     const activos = Number(b.indice) || 0;
     const nivel = nivelBarrio(b);
     const oculto = (filtroNivel !== 'todos' && filtroNivel !== nivel) ? ' oculto' : '';
     const vacio = activos === 0 ? ' none' : '';
     const sel = state.filtros.barrio == b.id ? ' activo' : '';
     const extraClima = activos > 0 && bonus > 0 ? ` (+${bonus} por clima)` : '';
-    // La burbuja muestra los criaderos sin controlar; el nombre aparece al pasar el mouse
     return `
       <button type="button" class="mapa-node ${nivel}${vacio}${sel}${oculto}" style="left:${b.x}%;top:${b.y}%"
-              data-barrio="${b.id}" data-nivel="${nivel}"
+              data-barrio="${b.id}" data-nivel="${nivel}" data-x="${b.x}" data-y="${b.y}"
               title="${ESCAPAR(b.nombre)}: ${activos} criadero(s) sin controlar${extraClima} · ${NIVELES[nivel].label}">
         <span class="burbuja">${activos}</span>
         <span class="nombre">${ESCAPAR(b.nombre)}</span>
       </button>`;
   }).join('');
 
-  if (!riesgo.length) mapa.innerHTML = '<p class="placeholder">Sin datos para el mapa.</p>';
+  if (!riesgo.length) {
+    contenedorBurbujas.innerHTML = '<p class="placeholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">Sin datos para el mapa.</p>';
+  }
+  // Mantener zoom actual al re-renderizar
+  aplicarTransformMapa();
 }
 
 /* ---------- Reportes ---------- */
@@ -471,7 +525,7 @@ function bind() {
     $('#reportes').scrollIntoView({ behavior: 'smooth' });
   });
 
-  // Sidebar de barrios: clic centra el mapa en el barrio
+  // Sidebar de barrios: clic centra el mapa en el barrio CON ZOOM
   $('[data-js-barra-barrios]')?.addEventListener('click', (ev) => {
     const btn = ev.target.closest('button[data-barrio]');
     if (!btn) return;
@@ -480,12 +534,13 @@ function bind() {
     $$('[data-js-barra-barrios] button').forEach((b) => b.classList.remove('activo'));
     btn.classList.add('activo');
     if (barrioId === 'todos') {
-      // Mostrar todos
+      // Mostrar todos - reset zoom
       state.filtros.barrio = '';
+      resetZoom();
       renderMapa(state.ultimaRiesgo || []);
       return;
     }
-    // Centrar mapa en el barrio (hacer scroll al contenedor del mapa si hace falta)
+    // Centrar mapa en el barrio CON ZOOM
     const barrio = state.barrios.find((b) => b.id == barrioId);
     if (barrio) {
       state.filtros.barrio = barrioId;
@@ -494,8 +549,8 @@ function bind() {
       if (selBarrio) selBarrio.value = barrioId;
       renderMapa(state.ultimaRiesgo || []);
       cargarReportes();
-      // Scroll suave al mapa
-      $('.mapa-wrapper')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // ZOOM real al barrio
+      setTimeout(() => zoomEnBarrio(barrio), 50);
     }
   });
 
@@ -552,6 +607,21 @@ function bind() {
     btn.classList.add('activo');
     // Re-renderizar mapa con filtro
     renderMapa(state.ultimaRiesgo || []);
+  });
+
+  // Controles de zoom del mapa
+  $('#zoom-in')?.addEventListener('click', () => { aplicarZoom(1.5); });
+  $('#zoom-out')?.addEventListener('click', () => { aplicarZoom(1/1.5); });
+  $('#zoom-reset')?.addEventListener('click', () => { resetZoom(); });
+
+  // Click en burbuja del mapa -> zoom a ese barrio
+  $('[data-js-mapa-burbujas]')?.addEventListener('click', (ev) => {
+    const node = ev.target.closest('.mapa-node[data-barrio]');
+    if (!node) return;
+    const barrioId = node.dataset.barrio;
+    if (barrioId === 'todos') return;
+    const barrio = state.barrios.find((b) => b.id == barrioId);
+    if (barrio) zoomEnBarrio(barrio);
   });
 
   // Cuando llegan los datos de clima, recalcular el semáforo

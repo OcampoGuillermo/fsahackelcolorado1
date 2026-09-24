@@ -70,8 +70,11 @@ async function cargarBarriosSelect() {
     const barrios = await api('barrios');
     const select = $('#select-barrio');
     if (!select) return;
-    select.innerHTML = '<option value="">— Elegí tu barrio —</option>' +
-      barrios.map((b) => `<option value="${b.id}">${ESCAPAR(b.nombre)}</option>`).join('');
+    // Solo actualizar si el select tiene solo la opción por defecto (fallback server-side)
+    if (select.options.length <= 1) {
+      select.innerHTML = '<option value="">— Elegí tu barrio —</option>' +
+        barrios.map((b) => `<option value="${b.id}">${ESCAPAR(b.nombre)}</option>`).join('');
+    }
   } catch (err) {
     console.error('Error cargando barrios:', err);
   }

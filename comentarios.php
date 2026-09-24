@@ -5,6 +5,16 @@
  * 1 comentario por día por dispositivo (localStorage)
  */
 require_once __DIR__ . '/inc/helpers.php';
+require_once __DIR__ . '/inc/db.php';
+
+// Cargar barrios server-side como fallback
+$barrios = [];
+try {
+    $stmt = db()->query('SELECT id, nombre FROM barrios ORDER BY nombre');
+    $barrios = $stmt->fetchAll();
+} catch (Exception $e) {
+    $barrios = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -84,6 +94,9 @@ require_once __DIR__ . '/inc/helpers.php';
           Tu barrio <span class="req">*</span>
           <select name="barrio_id" id="select-barrio" required>
             <option value="">— Elegí tu barrio —</option>
+            <?php foreach ($barrios as $b): ?>
+              <option value="<?= (int)$b['id'] ?>"><?= e($b['nombre']) ?></option>
+            <?php endforeach; ?>
           </select>
         </label>
         <label>

@@ -73,6 +73,11 @@ require_once __DIR__ . '/inc/helpers.php';
         <button type="button" data-nivel="medio"><i class="dot medio"></i> Medio</button>
         <button type="button" data-nivel="bajo"><i class="dot bajo"></i> Bajo</button>
       </div>
+      <div class="mapa-controles" role="group" aria-label="Controles de zoom del mapa">
+        <button type="button" id="zoom-in" aria-label="Acercar">🔍+</button>
+        <button type="button" id="zoom-out" aria-label="Alejar">🔍−</button>
+        <button type="button" id="zoom-reset" aria-label="Restablecer vista">⌂</button>
+      </div>
     </div>
     <div class="mapa-contenedor">
       <!-- Sidebar con lista de barrios -->
@@ -82,15 +87,12 @@ require_once __DIR__ . '/inc/helpers.php';
           <li><button type="button" data-barrio="todos" class="activo">Todos los barrios</button></li>
         </ul>
       </aside>
-      <!-- Mapa -->
+      <!-- Mapa con zoom/pan -->
       <div class="mapa-wrapper">
-        <div class="mapa plano" data-js-mapa aria-label="Plano de barrios de El Colorado con el riesgo de cada barrio">
-          <p class="loading">Cargando mapa…</p>
-        </div>
-        <p class="mapa-nota">Plano oficial de barrios de El Colorado. El número de cada burbuja son los criaderos
-           sin controlar; el color combina esos criaderos con el clima de la semana.
-           <strong>Clic en un barrio</strong> para ver sus criaderos.</p>
+        <div class="mapa-imagen" data-js-mapa-imagen aria-label="Plano de barrios de El Colorado"></div>
+        <div class="mapa-burbujas" data-js-mapa-burbujas aria-label="Burbujas de riesgo por barrio"></div>
       </div>
+      <p class="mapa-nota">Plano oficial de barrios de El Colorado. Usá los botones <strong>🔍+ / 🔍−</strong> para zoom, <strong>⌂</strong> para reset. <strong>Clic en un barrio</strong> (lista o burbuja) para centrar y hacer zoom.</p>
     </div>
   </section>
 
