@@ -250,5 +250,57 @@ if ($route === 'reportes' && $method === 'POST') {
     json_response(['ok' => true, 'message' => 'Criadero reportado', 'data' => $stmt->fetch()], 201);
 }
 
+// ========== COMENTARIOS ==========
+
+// LISTA de comentarios
+if (preg_match('#^comentarios$#', $route) && $method === 'GET') {
+    $barrio = val($_GET['barrio'] ?? '');
+    $limit  = min(100, max(1, (int) ($_GET['limit'] ?? 50)));
+
+    $sql = "SELECT c.id, c.tipo, c.texto, c.creado_en, b.nombre AS barrio_nombre
+            FROM comentarios c
+            JOIN barrios b ON b.id = c.barrio_id
+            WHERE 1=1";
+    $pars = [];
+
+    if ($barrio !== '') {
+        $sql .= ' AND c.barrio_id = ?';
+        $pars[] = (int) $barrio;
+    }
+    $sql .= ' ORDER BY c.creado_en DESC LIMIT ' . $limit;
+
+    $stmt = db()->prepare($sql);
+    $stmt->execute($pars);
+    json_response(['ok' => true, 'data' => $stmt->fetchAll()]);
+}
+
+// CREAR comentario
+if ($route === 'comentarios' && $method === 'POST') {
+    $b = body_json();
+
+    $barrio_id = (int) ($b['barrio_id'] ?? 0);
+    $tipo      = $b['tipo'] ?? 'sugerencia';
+    $texto     = trim($b['texto'] ?? '');
+
+    if ($barrio_id < 1) json_error('Debe elegir un barrio.');
+    if (!in_array($tipo, ['sugerencia','problema','felicitacion','otro'], true))
+        json_error('Tipo inválido.');
+    if ($texto === '' || mb_strlen($texto) > 2000)
+        json_error('El comentario es obligatorio (máx. 2000 caracteres).');
+
+    $stmt = db()->prepare(
+        'INSERT INTO comentarios (barrio_id, tipo, texto) VALUES (?, ?, ?)'
+    );
+    $stmt->execute([$barrio_id, $tipo, $texto]);
+    $id = (int) db()->lastInsertId();
+
+    $stmt = db()->prepare(
+        'SELECT c.*, b.nombre AS barrio_nombre FROM comentarios c JOIN barrios b ON b.id = c.barrio_id WHERE c.id = ?'
+    );
+    $stmt->execute([$id]);
+
+    json_response(['ok' => true, 'message' => 'Comentario enviado', 'data' => $stmt->fetch()], 201);
+}
+
 // Ruta desconocida
 json_error('Ruta no encontrada. Ver /api/?route=', 404);

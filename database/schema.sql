@@ -9,6 +9,7 @@ CREATE DATABASE IF NOT EXISTS formosahack
 USE formosahack;
 
 -- Re-ejecutable (idempotente): elimina y recrea tablas
+DROP TABLE IF EXISTS comentarios;
 DROP TABLE IF EXISTS reportes;
 DROP TABLE IF EXISTS barrios;
 DROP TABLE IF EXISTS tipos_criadero;
@@ -49,4 +50,17 @@ CREATE TABLE reportes (
   INDEX idx_reporte_tipo   (tipo_id),
   INDEX idx_reporte_barrio (barrio_id),
   INDEX idx_reporte_estado (estado)
+) ENGINE = InnoDB;
+
+-- Comentarios y sugerencias de la comunidad (1 por día por dispositivo controlado en cliente)
+CREATE TABLE comentarios (
+  id        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  barrio_id INT UNSIGNED NOT NULL,
+  tipo      ENUM('sugerencia','problema','felicitacion','otro') NOT NULL DEFAULT 'sugerencia',
+  texto     TEXT         NOT NULL,
+  creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_comentario_barrio FOREIGN KEY (barrio_id)
+    REFERENCES barrios (id) ON DELETE CASCADE,
+  INDEX idx_comentario_barrio (barrio_id),
+  INDEX idx_comentario_fecha (creado_en)
 ) ENGINE = InnoDB;

@@ -36,6 +36,7 @@ require_once __DIR__ . '/inc/helpers.php';
       <a href="#" data-nav="prevencion">Prevención</a>
       <a href="#" data-nav="quiz">Quiz</a>
       <a href="<?= e(BASE_URL) ?>/test-sintomas.php">Test de Síntomas</a>
+      <a href="<?= e(BASE_URL) ?>/comentarios.php">Comentarios</a>
     </nav>
   </div>
 </header>
@@ -73,12 +74,24 @@ require_once __DIR__ . '/inc/helpers.php';
         <button type="button" data-nivel="bajo"><i class="dot bajo"></i> Bajo</button>
       </div>
     </div>
-    <div class="mapa plano" data-js-mapa aria-label="Plano de barrios de El Colorado con el riesgo de cada barrio">
-      <p class="loading">Cargando mapa…</p>
+    <div class="mapa-contenedor">
+      <!-- Sidebar con lista de barrios -->
+      <aside class="mapa-sidebar" aria-label="Lista de barrios">
+        <h3>📍 Barrios</h3>
+        <ul data-js-barra-barrios>
+          <li><button type="button" data-barrio="todos" class="activo">Todos los barrios</button></li>
+        </ul>
+      </aside>
+      <!-- Mapa -->
+      <div class="mapa-wrapper">
+        <div class="mapa plano" data-js-mapa aria-label="Plano de barrios de El Colorado con el riesgo de cada barrio">
+          <p class="loading">Cargando mapa…</p>
+        </div>
+        <p class="mapa-nota">Plano oficial de barrios de El Colorado. El número de cada burbuja son los criaderos
+           sin controlar; el color combina esos criaderos con el clima de la semana.
+           <strong>Clic en un barrio</strong> para ver sus criaderos.</p>
+      </div>
     </div>
-    <p class="mapa-nota">Plano oficial de barrios de El Colorado. El número de cada burbuja son los criaderos
-       sin controlar; el color combina esos criaderos con el clima de la semana.
-       <strong>Clic en un barrio</strong> para ver sus criaderos.</p>
   </section>
 
   <!-- KPIs -->

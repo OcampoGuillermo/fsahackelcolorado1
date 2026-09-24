@@ -59,6 +59,36 @@ const state = {
   mapaFiltroNivel: 'todos',
 };
 
+/* ---------- Límite diario (1 interacción por dispositivo) ---------- */
+const LIMITE_KEY = 'casza_limite_diario';
+
+function obtenerLimite() {
+  try {
+    const data = JSON.parse(localStorage.getItem(LIMITE_KEY) || '{}');
+    const hoy = new Date().toISOString().split('T')[0];
+    return data[hoy] || 0;
+  } catch { return 0; }
+}
+
+function incrementarLimite() {
+  try {
+    const data = JSON.parse(localStorage.getItem(LIMITE_KEY) || '{}');
+    const hoy = new Date().toISOString().split('T')[0];
+    data[hoy] = (data[hoy] || 0) + 1;
+    localStorage.setItem(LIMITE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+function puedeInteractuar() {
+  return obtenerLimite() === 0;
+}
+
+function actualizarEstadoLimite() {
+  const bloqueado = !puedeInteractuar();
+  $$('[data-js-form] button[type=submit]').forEach((b) => { b.disabled = bloqueado; });
+  $$('[data-voto]').forEach((b) => { b.disabled = bloqueado; });
+}
+
 /* ---------- Quiz (concientización) ---------- */
 const QUIZ = [
   {
@@ -175,6 +205,30 @@ async function cargarCatalogos() {
   if (filtroBarrio) filtroBarrio.innerHTML = '<option value="">Todos los barrios</option>' + optsBarrio;
   if (formTipo) formTipo.innerHTML = '<option value="">— Elegir tipo —</option>' + optsTipo;
   if (formBarrio) formBarrio.innerHTML = '<option value="">— Elegir barrio —</option>' + optsBarrio;
+
+  // Sidebar de barrios en el mapa
+  renderBarriosSidebar(barrios);
+}
+
+/* ---------- Sidebar de barrios ---------- */
+function renderBarriosSidebar(barrios) {
+  const ul = $('[data-js-barra-barrios]');
+  if (!ul) return;
+
+  const items = barrios.map((b) => {
+    const n = b.nombre.length > 22 ? b.nombre.substring(0, 21) + '…' : b.nombre;
+    const idx = b.indice !== undefined ? b.indice : 0;
+    const nivel = idx >= 4 ? 'alto' : (idx >= 2 ? 'medio' : 'bajo');
+    const cls = idx > 0 ? nivel : 'none';
+    return `<li>
+      <button type="button" data-barrio="${b.id}" data-x="${b.x}" data-y="${b.y}" title="${ESCAPAR(b.nombre)}">
+        <span>${ESCAPAR(n)}</span>
+        <span class="barrio-indice ${cls}">${idx}</span>
+      </button>
+    </li>`;
+  }).join('');
+
+  ul.innerHTML = `<li><button type="button" data-barrio="todos" class="activo">Todos los barrios</button></li>` + items;
 }
 
 /* ---------- Stats + mapa + KPIs ---------- */
@@ -324,6 +378,10 @@ async function cargarReportes() {
 /* ---------- Acciones ---------- */
 async function crearReporte(ev) {
   ev.preventDefault();
+  if (!puedeInteractuar()) {
+    alert('Ya realizaste tu interacción diaria (reportar, votar o comentar). Volvé mañana.');
+    return;
+  }
   const form = ev.currentTarget;
   const data = Object.fromEntries(new FormData(form).entries());
   const msg = $('[data-js-form-msg]');
@@ -340,6 +398,8 @@ async function crearReporte(ev) {
         referencia: data.referencia.trim(),
       }),
     });
+    incrementarLimite();
+    actualizarEstadoLimite();
     msg.textContent = '✅ ¡Criadero reportado! Ya aparece en el mapa de tu barrio.';
     msg.classList.add('ok');
     form.reset();
@@ -358,8 +418,14 @@ async function cambiarEstado(id, estado) {
 }
 
 async function votarReporte(id) {
+  if (!puedeInteractuar()) {
+    alert('Ya realizaste tu interacción diaria (reportar, votar o comentar). Volvé mañana.');
+    return;
+  }
   try {
     await api(`reportes/${id}`, { method: 'PATCH', body: JSON.stringify({ votos: 1 }) });
+    incrementarLimite();
+    actualizarEstadoLimite();
     await cargarReportes();
   } catch (err) { alert(err.message); }
 }
@@ -403,6 +469,34 @@ function bind() {
     renderMapa(state.ultimaRiesgo || []);
     cargarReportes();
     $('#reportes').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // Sidebar de barrios: clic centra el mapa en el barrio
+  $('[data-js-barra-barrios]')?.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-barrio]');
+    if (!btn) return;
+    const barrioId = btn.dataset.barrio;
+    // Actualizar UI sidebar
+    $$('[data-js-barra-barrios] button').forEach((b) => b.classList.remove('activo'));
+    btn.classList.add('activo');
+    if (barrioId === 'todos') {
+      // Mostrar todos
+      state.filtros.barrio = '';
+      renderMapa(state.ultimaRiesgo || []);
+      return;
+    }
+    // Centrar mapa en el barrio (hacer scroll al contenedor del mapa si hace falta)
+    const barrio = state.barrios.find((b) => b.id == barrioId);
+    if (barrio) {
+      state.filtros.barrio = barrioId;
+      // Actualizar filtro visible
+      const selBarrio = $('[data-js-filtros] select[name=barrio]');
+      if (selBarrio) selBarrio.value = barrioId;
+      renderMapa(state.ultimaRiesgo || []);
+      cargarReportes();
+      // Scroll suave al mapa
+      $('.mapa-wrapper')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   });
 
   // Formulario nuevo reporte
@@ -470,6 +564,7 @@ function bind() {
 /* ---------- Init ---------- */
 async function init() {
   bind();
+  actualizarEstadoLimite();
   try {
     await cargarCatalogos();
     const stats = await api('stats');

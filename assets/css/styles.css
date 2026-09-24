@@ -124,6 +124,70 @@ body {
   background: url('../img/mapa-el-colorado.png') center / cover no-repeat #f8fafc;
   overflow: hidden;
 }
+/* ---------- Mapa con Sidebar ---------- */
+.mapa-contenedor {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+  height: 560px;
+}
+@media (max-width: 900px) {
+  .mapa-contenedor { grid-template-columns: 1fr; height: auto; }
+}
+
+.mapa-sidebar {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 12px;
+  overflow-y: auto;
+  height: 100%;
+}
+.mapa-sidebar h3 { margin: 0 0 10px; font-size: .95rem; color: var(--texto); }
+.mapa-sidebar ul { list-style: none; padding: 0; margin: 0; }
+.mapa-sidebar li { margin-bottom: 6px; }
+.mapa-sidebar button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: #fff;
+  font-size: .85rem;
+  font-weight: 500;
+  color: var(--texto);
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mapa-sidebar button:hover {
+  background: #f0fdfa;
+  border-color: var(--acento);
+}
+.mapa-sidebar button.activo {
+  background: #e0f2fe;
+  border-color: var(--acento);
+  color: var(--acento);
+}
+.mapa-sidebar .barrio-indice {
+  margin-left: auto;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #fff;
+}
+.mapa-sidebar .barrio-indice.alto { background: var(--rojo); }
+.mapa-sidebar .barrio-indice.medio { background: var(--ambar); }
+.mapa-sidebar .barrio-indice.bajo { background: var(--verde); }
+.mapa-sidebar .barrio-indice.none { background: #94a3b8; }
+
+/* Map container ahora usa el grid */
+.mapa-wrapper { position: relative; height: 100%; min-height: 0; }
+
 .mapa-filtros { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 .mapa-filtros button {
   padding: 6px 12px; font-size: .8rem; border-radius: 999px; border: 2px solid;
@@ -137,6 +201,11 @@ body {
 .mapa-filtros button[data-nivel="medio"].activo  { background: var(--ambar); }
 .mapa-filtros button[data-nivel="bajo"].activo   { background: var(--verde); }
 .mapa-filtros button[data-nivel="todos"].activo  { background: var(--acento); border-color: var(--acento); }
+
+/* Fix: Volver Al Inicio no se superpone con filtros */
+.panel-head { position: relative; }
+.btn-volver-inicio { z-index: 20; }
+.mapa-filtros { position: relative; z-index: 10; }
 
 .mapa-node {
   position: absolute;
