@@ -56,6 +56,7 @@ const state = {
   quizIndex: 0,
   quizScore: 0,
   quizDone: false,
+  mapaFiltroNivel: 'todos',
 };
 
 /* ---------- Quiz (concientización) ---------- */
@@ -211,6 +212,7 @@ async function cargarStats() {
 
   state.ultimaRiesgo = stats.riesgo_barrios;
   renderMapa(stats.riesgo_barrios);
+  renderMapaFiltros();
 }
 
 function renderMapa(riesgo) {
@@ -218,16 +220,21 @@ function renderMapa(riesgo) {
   if (!mapa) return;
 
   const maxActivos = Math.max(1, ...riesgo.map((b) => b.indice));
+  const filtroNivel = state.mapaFiltroNivel || 'todos';
 
   mapa.innerHTML = riesgo.map((b) => {
     const nivel = b.nivel in NIVELES ? b.nivel : 'bajo';
+    // Ocultar si no coincide con el filtro de nivel
+    const oculto = (filtroNivel !== 'todos' && filtroNivel !== nivel) ? ' oculto' : '';
     const size = 40 + Math.round((b.indice / maxActivos) * 42);
     const sel = state.filtros.barrio == b.id ? ' mapa-seleccionado' : '';
+    // Burbuja muestra el nombre del barrio (truncado si es muy largo)
+    const nombreCorto = b.nombre.length > 16 ? b.nombre.substring(0, 15) + '…' : b.nombre;
     return `
-      <button class="mapa-node ${nivel}${sel}" style="left:${b.x}%;top:${b.y}%"
-              data-barrio="${b.id}" title="${ESCAPAR(b.nombre)}: ${b.indice} criadero(s) sin controlar">
-        <span class="burbuja" style="width:${size}px;height:${size}px">${b.indice}</span>
-        <span class="nombre">${ESCAPAR(b.nombre)}</span>
+      <button class="mapa-node ${nivel}${sel}${oculto}" style="left:${b.x}%;top:${b.y}%"
+              data-barrio="${b.id}" data-nivel="${nivel}"
+              title="${ESCAPAR(b.nombre)}: ${b.indice} criadero(s) sin controlar">
+        <span class="burbuja" style="min-width:${size}px;height:${size}px">${ESCAPAR(nombreCorto)}</span>
       </button>`;
   }).join('');
 
@@ -410,6 +417,18 @@ function bind() {
       state.quizIndex = 0; state.quizScore = 0; state.quizDone = false;
       renderQuiz();
     }
+  });
+
+  // Filtros del mapa (riesgo alto/medio/bajo)
+  $('#mapa .mapa-filtros')?.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button[data-nivel]');
+    if (!btn) return;
+    state.mapaFiltroNivel = btn.dataset.nivel;
+    // Actualizar UI
+    $$('#mapa .mapa-filtros button').forEach((b) => b.classList.remove('activo'));
+    btn.classList.add('activo');
+    // Re-renderizar mapa con filtro
+    renderMapa(state.ultimaRiesgo || []);
   });
 }
 

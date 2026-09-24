@@ -96,26 +96,43 @@ body {
   background: url('../img/mapa-el-colorado.png') center / cover no-repeat #f8fafc;
   overflow: hidden;
 }
+.mapa-filtros { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.mapa-filtros button {
+  padding: 6px 12px; font-size: .8rem; border-radius: 999px; border: 2px solid;
+  background: #fff; cursor: pointer; font-weight: 700; transition: all .15s;
+}
+.mapa-filtros button.activo { color: #fff; }
+.mapa-filtros button[data-nivel="alto"]   { border-color: var(--rojo);   color: var(--rojo); }
+.mapa-filtros button[data-nivel="medio"] { border-color: var(--ambar);  color: var(--ambar); }
+.mapa-filtros button[data-nivel="bajo"]  { border-color: var(--verde);  color: var(--verde); }
+.mapa-filtros button[data-nivel="alto"].activo   { background: var(--rojo); }
+.mapa-filtros button[data-nivel="medio"].activo  { background: var(--ambar); }
+.mapa-filtros button[data-nivel="bajo"].activo   { background: var(--verde); }
+.mapa-filtros button[data-nivel="todos"].activo  { background: var(--acento); border-color: var(--acento); }
+
 .mapa-node {
   position: absolute;
   transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center;
   cursor: pointer; user-select: none;
+  transition: opacity .2s, transform .2s;
 }
+.mapa-node.oculto { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.7); }
 .mapa-node .burbuja {
-  width: 44px; height: 44px; border-radius: 50%;
+  min-width: 44px; height: 44px; border-radius: 999px;
   display: grid; place-items: center;
-  color: #fff; font-weight: 800; font-size: .95rem;
+  color: #fff; font-weight: 800; font-size: .85rem;
   box-shadow: 0 4px 12px rgba(15, 23, 42, .25);
   border: 3px solid #fff;
-  transition: transform .15s;
+  padding: 0 10px;
+  white-space: nowrap;
+  transition: transform .15s, min-width .2s;
 }
-.mapa-node:hover .burbuja { transform: scale(1.18); }
+.mapa-node:hover .burbuja { transform: scale(1.15); }
 .mapa-node.alto .burbuja   { background: var(--rojo); }
 .mapa-node.medio .burbuja  { background: var(--ambar); }
 .mapa-node.bajo .burbuja   { background: var(--verde); }
 .mapa-node.none .burbuja   { background: #94a3b8; }
-.mapa-node .nombre { margin-top: 5px; font-size: .74rem; font-weight: 700; background: #fff; padding: 2px 8px; border-radius: 999px; box-shadow: 0 1px 3px rgba(0,0,0,.12); white-space: nowrap; }
 .leyenda { display: flex; gap: 16px; font-size: .82rem; color: var(--suave); }
 .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
 .dot.alto { background: var(--rojo); } .dot.medio { background: var(--ambar); } .dot.bajo { background: var(--verde); }
