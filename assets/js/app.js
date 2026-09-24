@@ -16,10 +16,12 @@ const ESCAPAR = (txt = '') =>
   }[c]));
 
 async function api(route, options = {}) {
+  console.log('API call:', route);
   const res = await fetch(API() + '?route=' + route, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
+  console.log('API response:', res.status, route);
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.ok === false) throw new Error(json.error || 'Error en la API');
   return json.data;
@@ -129,8 +131,13 @@ const QUIZ = [
 ];
 
 function renderQuiz() {
+  console.log('renderQuiz() called');
   const cont = $('[data-js-quiz]');
-  if (!cont) return;
+  console.log('Quiz container found:', !!cont);
+  if (!cont) {
+    console.error('Quiz container NOT found!');
+    return;
+  }
 
   if (state.quizDone) {
     const pct = Math.round((state.quizScore / QUIZ.length) * 100);
@@ -411,6 +418,7 @@ function reporteCard(r) {
 }
 
 async function cargarReportes() {
+  console.log('cargarReportes() called');
   const f = state.filtros;
   const params = new URLSearchParams();
   if (f.tipo) params.set('tipo', f.tipo);
@@ -439,6 +447,7 @@ async function cargarReportes() {
 
 /* ---------- Acciones ---------- */
 async function crearReporte(ev) {
+  console.log('crearReporte() called');
   ev.preventDefault();
   if (!puedeInteractuar()) {
     alert('Ya realizaste tu interacción diaria (reportar, votar o comentar). Volvé mañana.');
@@ -446,6 +455,7 @@ async function crearReporte(ev) {
   }
   const form = ev.currentTarget;
   const data = Object.fromEntries(new FormData(form).entries());
+  console.log('Form data:', data);
   const msg = $('[data-js-form-msg]');
   msg.className = 'form-msg';
 
@@ -502,10 +512,12 @@ async function eliminarReporte(id) {
 
 /* ---------- Navegación ---------- */
 function navegar(dest) {
+  console.log('navegar() called with:', dest);
   $$('[data-nav]').forEach((x) => x.classList.remove('active'));
   const target = dest === 'reportes' || dest === 'prevencion' || dest === 'quiz'
     ? $('#' + dest)
     : dest === 'nuevo' ? $('#nuevo') : $('#mapa');
+  console.log('Target element found:', !!target);
   if (target) {
     window.scrollTo({ top: target.offsetTop - 16, behavior: 'smooth' });
     const nav = $(`.topbar a[data-nav="${dest}"]`);
@@ -517,6 +529,7 @@ function navegar(dest) {
 function bind() {
   // Nav
   $$('[data-nav]').forEach((a) => a.addEventListener('click', (ev) => {
+    console.log('Nav click:', a.dataset.nav);
     ev.preventDefault();
     navegar(a.dataset.nav);
   }));
@@ -641,18 +654,26 @@ function bind() {
 
 /* ---------- Init ---------- */
 async function init() {
+  console.log('init() started');
   bind();
   actualizarEstadoLimite();
   try {
+    console.log('Loading catalogs...');
     await cargarCatalogos();
+    console.log('Loading stats...');
     const stats = await api('stats');
     state.ultimaRiesgo = stats.riesgo_barrios;
+    console.log('Loading stats UI...');
     cargarStats();
+    console.log('Loading reports...');
     await cargarReportes();
   } catch (err) {
+    console.error('Init error:', err);
     $('[data-js-reportes]').innerHTML = `<p class="placeholder">⚠️ ${ESCAPAR(err.message)}</p>`;
   }
+  console.log('Rendering quiz...');
   renderQuiz();
+  console.log('init() completed');
 }
 
 document.addEventListener('DOMContentLoaded', init);
