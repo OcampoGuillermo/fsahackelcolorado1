@@ -34,24 +34,46 @@ body {
 .topbar {
   background: linear-gradient(135deg, #134e4a, #0e7490);
   color: #fff;
-  padding: 16px 0;
+  padding: 20px 0;
   box-shadow: var(--sombra);
 }
-.topbar .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand .logo { font-size: 2.1rem; }
-.brand h1 { margin: 0; font-size: 1.45rem; letter-spacing: .3px; }
-.brand p { margin: 0; font-size: .84rem; opacity: .92; }
-.topbar nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.topbar .container { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 16px; 
+  text-align: center;
+}
+.brand { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 10px; 
+}
+.brand-text { display: flex; flex-direction: column; align-items: center; }
+.brand h1 { margin: 0; font-size: 1.6rem; letter-spacing: .3px; }
+.brand p { margin: 0; font-size: .9rem; opacity: .92; }
+.logo-img { 
+  width: 80px; height: 80px; 
+  border-radius: 12px; 
+  object-fit: cover; 
+  flex-shrink: 0; 
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.topbar nav { 
+  display: flex; 
+  justify-content: center; 
+  gap: 6px; 
+  flex-wrap: wrap; 
+  margin-top: 8px;
+}
 .topbar nav a {
-  color: #fff; text-decoration: none; padding: 8px 13px; border-radius: 8px;
-  font-size: .92rem; transition: background .15s;
+  color: #fff; text-decoration: none; padding: 8px 14px; border-radius: 8px;
+  font-size: .9rem; transition: background .15s; white-space: nowrap;
 }
 .topbar nav a:hover { background: rgba(255, 255, 255, .16); }
 .topbar nav a.active { background: rgba(255, 255, 255, .24); font-weight: 600; }
-
-/* ---------- Logo ---------- */
-.logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
 
 /* ---------- Botón Volver Al Inicio (esquina superior derecha de cada panel) ---------- */
 .panel { position: relative; }
@@ -209,7 +231,7 @@ body {
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Burbujas individuales - solo círculo, nombre al hover para no tapar otros barrios */
+/* Burbujas individuales - círculo transparente con borde de color, número adentro */
 .mapa-node {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -220,20 +242,22 @@ body {
 }
 .mapa-node.oculto { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.7); }
 .mapa-node .burbuja {
-  width: 40px; height: 40px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   display: grid; place-items: center;
-  color: #fff; font-weight: 800; font-size: .8rem;
-  box-shadow: 0 3px 10px rgba(15, 23, 42, .3);
-  border: 2px solid #fff;
-  transition: transform .15s;
+  font-weight: 800; font-size: .8rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .25);
+  border: 3px solid;
+  background: transparent; /* SIN FONDO */
+  color: inherit; /* color del texto = color del borde */
+  transition: transform .15s, box-shadow .15s;
   flex-shrink: 0;
 }
-.mapa-node:hover .burbuja { transform: scale(1.25); }
-.mapa-node.alto .burbuja   { background: var(--rojo); }
-.mapa-node.medio .burbuja  { background: var(--ambar); }
-.mapa-node.bajo .burbuja   { background: var(--verde); }
-.mapa-node.none .burbuja   { background: #94a3b8; }
-/* Nombre SOLO al hover - no tapa otros barrios */
+.mapa-node:hover .burbuja { transform: scale(1.25); box-shadow: 0 4px 16px rgba(15, 23, 42, .35); }
+.mapa-node.alto .burbuja   { border-color: var(--rojo);   color: var(--rojo); }
+.mapa-node.medio .burbuja  { border-color: var(--ambar);  color: var(--ambar); }
+.mapa-node.bajo .burbuja   { border-color: var(--verde);  color: var(--verde); }
+.mapa-node.none .burbuja   { border-color: #94a3b8;     color: #94a3b8; }
+/* Nombre SOLO al hover */
 .mapa-node .nombre {
   position: absolute;
   bottom: 100%;

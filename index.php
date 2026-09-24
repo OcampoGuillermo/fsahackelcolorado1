@@ -23,11 +23,11 @@ require_once __DIR__ . '/inc/helpers.php';
 <header class="topbar">
   <div class="container">
     <div class="brand">
-      <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-img">
-      <div>
+      <div class="brand-text">
         <h1><?= e(APP_NAME) ?></h1>
         <p><?= e(APP_TAGLINE) ?></p>
       </div>
+      <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-img">
     </div>
     <nav>
       <a href="#" data-nav="mapa" class="active">Mapa de riesgo</a>
