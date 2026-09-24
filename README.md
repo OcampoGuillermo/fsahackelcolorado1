@@ -1,5 +1,6 @@
 # 🏆 FormosaHack 2026 — Base de Proyecto (HTML + PHP + CSS + JS + MySQL)
 
+> **Repositorio GitHub:** `github.com/OcampoGuillermo/fsahackelcolorado1` (rama `main`)
 > Proyecto base del equipo para el **Ultra Hackatón de 24 Horas FormosaHack 2026**.
 > Stack: **HTML + CSS + JavaScript (vanilla) + PHP 8 + MySQL (MariaDB)**, servido con XAMPP (Apache).
 
