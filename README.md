@@ -13,13 +13,14 @@ criaderos de mosquitos dificulta la **prevención** del dengue/zika/chikungunya 
 la **participación de la comunidad**. CaszaMosqui permite:
 
 - 📝 **Reportar criaderos** (tipo, barrio, referencia y descripción).
-- 🗺️ **Mapa de riesgo sobre el plano oficial de El Colorado** (28 barrios) con semáforo en vivo (100% offline): rojo 5+ criaderos sin controlar, amarillo 3-4 y verde 0-2.
+- 🗺️ **Mapa vectorial de riesgo** sobre el plano oficial de El Colorado (28 barrios), con zoom, desplazamiento, nombres y etiquetas por nivel (100% offline): rojo 5+ criaderos sin controlar, amarillo 3-4 y verde 0-2.
 - 🌧️ **Alerta climática:** lluvia y temperatura reales (Open-Meteo) para informar el riesgo ambiental de los barrios con criaderos.
 - 🧭 **147 calles reales** sugeridas al reportar (según el barrio elegido).
 - 📊 **KPIs y ranking** de criaderos más reportados.
 - 📄 **Listado de Reportes paginado:** la pantalla muestra 4 criaderos por página, con filtros combinables.
+- 🤖 **Chatbot Mosqui:** asistente local de dengue, zika, chikungunya y prevención; funciona sin internet y admite IA opcional.
 - 🔎 **Gestión:** pendiente → verificado → controlado (con votos de respaldo).
-- 📖 **Guía de prevención** + 🎯 **quiz de concientización** para la comunidad.
+- 📖 **Guía visual de prevención** + 🎯 **cuestionario de concientización** para la comunidad.
 
 ## 🚀 Puesta en marcha (XAMPP local)
 
@@ -29,6 +30,8 @@ la **participación de la comunidad**. CaszaMosqui permite:
 C:\xampp\php\php.exe scripts\setup.php
 # 3. Abrir en el navegador:
 http://localhost/formosahack-2026/
+# Modo demo sin límite diario:
+http://localhost/formosahack-2026/?demo=1
 ```
 
 > Config: `inc/config.php` (XAMPP: usuario `root`, sin contraseña). La BD se llama `formosahack`.
@@ -61,6 +64,7 @@ y reemplazá el valor de `AUTH_PASSWORD_HASH` en `inc/config.php`. El archivo `i
 | DELETE | `/api/?route=reportes/{id}` | Eliminar · requiere sesión |
 | GET | `/api/?route=stats` | KPIs + índice de riesgo por barrio |
 | GET | `/api/clima.php` | Lluvia, temperatura y nivel de riesgo climático |
+| POST | `/api/chat.php` | Chatbot local Mosqui (IA opcional mediante `CLAUDE_API_KEY`) |
 
 La consulta de reportes devuelve los registros en `data` y los datos de paginación en `meta` (`pagina`, `por_pagina`, `total`, `total_paginas`). `por_pagina` utiliza 4 por defecto.
 
@@ -68,14 +72,18 @@ La consulta de reportes devuelve los registros en `data` y los datos de paginaci
 
 ```
 formosahack-2026/
-├── index.php              Dashboard (mapa, KPIs, reportes, formulario, quiz)
+├── index.php              Dashboard (mapa vectorial, KPIs, reportes, formulario, prevención, cuestionario)
 ├── api/index.php          API REST (JSON, consultas preparadas)
+├── api/chat.php           Chatbot Mosqui (base local + IA opcional)
+├── api/chat-base.php      Base de conocimiento del chatbot
 ├── api/clima.php          Alerta climática (Open-Meteo + caché)
 ├── inc/                   config.php · db.php (PDO) · helpers.php · auth.php
 ├── reportes-auth.php      Inicio/cierre de sesión de Reportes
-├── assets/                css/ · js/app.js, clima.js, calles.js · img/plano-el-colorado.jpg
+├── instalar-db.php        Instalador local alternativo (destructivo; usar con precaución)
+├── assets/                css/ · js/app.js, clima.js, calles.js, chatbot.js · img/plano-el-colorado.svg
 ├── database/              schema.sql · seed.sql (datos de El Colorado)
 ├── scripts/setup.php      Reconstruye la BD en 1 comando
+├── INSTALAR.md            Guía de instalación extendida
 └── docs/                  DESAFIO.md · SOLUCION.md · DEMO.md · CALLES.md (para el jurado)
 ```
 

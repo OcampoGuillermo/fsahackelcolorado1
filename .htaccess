@@ -5,5 +5,6 @@ AddDefaultCharset UTF-8
 # Bloquear acceso a carpetas internas desde el navegador
 RedirectMatch 403 /(inc|database|scripts|cache)(/|$)
 
-# Si no está Apache, PHP embebido también bloquea por su cuenta
-php_flag display_errors On
+# En desarrollo se pueden revisar los logs de Apache; no exponer errores al navegador
+php_flag display_errors Off
+php_flag log_errors On

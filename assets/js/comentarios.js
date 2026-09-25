@@ -3,10 +3,6 @@
    1 interacción por día por dispositivo (localStorage)
    ============================================================ */
 
-alert('comentarios.js EXECUTING');
-
-console.log('comentarios.js PARSED - file loaded');
-
 const API = () => window.BASE_URL + '/api/';
 
 const $  = (sel, ctx = document) => ctx.querySelector(sel);
@@ -14,8 +10,8 @@ const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
 const ESCAPAR = (txt = '') =>
   String(txt).replace(/[&<>"']/g, (c) => ({
-    '&': '&', '<': '<', '>': '>', '"': '"', "'": ''',
-  }[c]);
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
 
 async function api(route, options = {}) {
   const res = await fetch(API() + '?route=' + route, {
@@ -47,8 +43,16 @@ function incrementarLimite() {
   } catch {}
 }
 
+// Modo demo (?demo=1 en la URL de la app): sin límite diario durante la sesión del navegador
+const MODO_DEMO = (() => {
+  try {
+    if (new URLSearchParams(location.search).has('demo')) sessionStorage.setItem('casza_demo', '1');
+    return sessionStorage.getItem('casza_demo') === '1';
+  } catch { return false; }
+})();
+
 function puedeInteractuar() {
-  return obtenerLimite() === 0;
+  return MODO_DEMO || obtenerLimite() === 0;
 }
 
 function actualizarAviso() {
@@ -56,7 +60,7 @@ function actualizarAviso() {
   const btn = $('#btn-enviar');
   const ta = $('#textarea-comentario');
   if (!puedeInteractuar()) {
-    aviso.textContent = '⚠️ Ya realizaste tu interacción hoy. Volvé mañana.';
+    aviso.textContent = '⚠️ Ya realizaste una interacción hoy. Volvé mañana.';
     aviso.classList.add('bloqueado');
     if (btn) btn.disabled = true;
     if (ta) ta.disabled = true;
@@ -161,8 +165,4 @@ async function init() {
   await Promise.all([cargarBarriosSelect(), cargarComentarios()]);
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+document.addEventListener('DOMContentLoaded', init);

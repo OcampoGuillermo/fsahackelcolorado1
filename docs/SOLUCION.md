@@ -26,22 +26,32 @@ Navegador (index.php)
    │  fetch() → JSON
    ▼
 api/index.php  (router ?route=tipos|barrios|reportes|stats)
+api/chat.php  (base local + IA opcional)
    │   PDO preparado
    ▼
 MySQL (formosahack: tipos_criadero, barrios, reportes)
 ```
 
-## Base de datos (3 tablas)
+## Funcionalidades adicionales
+
+- **Mapa v2 vectorial:** SVG local, zoom de hasta 6×, desplazamiento con rueda/arrastre, nombres cortos/largos y selección de barrios.
+- **Chatbot Mosqui:** `assets/js/chatbot.js` + `api/chat.php`, con base de conocimiento local y respuesta opcional por IA.
+- **Modo demo:** `?demo=1` desactiva el límite diario durante la sesión del navegador para demostraciones.
+- **Instalación:** `scripts/setup.php` es el procedimiento recomendado; `instalar-db.php` queda como instalador local alternativo.
+- **Acceso:** la sección Reportes usa sesión PHP, credenciales locales y token CSRF.
+
+## Base de datos (4 tablas)
 
 | Tabla | Campos | Uso |
 |---|---|---|
 | `tipos_criadero` | id, nombre, color, icono | Clasificación de criaderos (recipientes, neumáticos, piletas, zanjas, basurales, botellas) |
 | `barrios` | id, nombre, localidad, x, y, poblacion | Barrios con posición esquemática para el mapa |
 | `reportes` | id, tipo_id, barrio_id, titulo, descripcion, referencia, estado, votos, creado_en | Criaderos reportados por la comunidad |
+| `comentarios` | id, barrio_id, tipo, texto, creado_en | Sugerencias y comentarios por barrio |
 
 ## Mapa: plano oficial de El Colorado
 
-- Fondo: **plano municipal de barrios actualizado** (28 barrios), guardado como imagen local → funciona sin internet.
+- Fondo: **plano municipal de barrios actualizado** (28 barrios), guardado como SVG local → funciona sin internet y mantiene nitidez al hacer zoom.
 - Cada barrio tiene su posición `x, y` (en %) sobre el plano, en la tabla `barrios`.
 - **147 calles reales** por barrio (`assets/js/calles.js`, `docs/CALLES.md`): el campo "referencia" del formulario sugiere las calles del barrio elegido.
 
@@ -66,15 +76,16 @@ MySQL (formosahack: tipos_criadero, barrios, reportes)
 | PATCH | `/api/?route=reportes/{id}` | Cambiar estado o sumar voto |
 | DELETE | `/api/?route=reportes/{id}` | Eliminar |
 | GET | `/api/?route=stats` | KPIs + riesgo por barrio + tipos |
+| POST | `/api/chat.php` | Consultas al chatbot Mosqui (base local + IA opcional) |
 
 ## Decisiones clave
 
 | Decisión | Elegida | Por qué |
 |---|---|---|
-| Mapas | Plano oficial de barrios como imagen + posiciones x/y en % | Mapa real de El Colorado, 100% offline, demo garantizada |
+| Mapas | Plano oficial vectorial SVG + posiciones x/y en % | Mapa real de El Colorado, nítido al hacer zoom y 100% offline |
 | Clima | Open-Meteo (gratis, sin clave) con caché | Alerta anticipada según lluvia y temperatura reales |
-| Seguridad | PDO preparado + `e()` anti-XSS | Protección básica demostrable |
-| Participación | Reportes + votos + quiz | Involucra a la comunidad (requisito del desafío) |
+| Seguridad | PDO preparado + `e()` anti-XSS + sesión/CSRF | Protección básica demostrable para Reportes |
+| Participación | Reportes + votos + cuestionario + chatbot | Involucra a la comunidad (requisito del desafío) |
 | Despliegue | XAMPP + GitHub | Entregables pedidos por la organización |
 
 ## Riesgos y mitigación

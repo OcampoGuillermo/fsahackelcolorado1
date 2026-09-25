@@ -1,28 +1,23 @@
-# 🦟 CaszaMosqui — Cómo aplicar la actualización (≈10 min)
+# 🦟 CaszaMosqui — Puesta en marcha y verificación (≈10 min)
 
-Este paquete trae **solo los 17 archivos que cambian o son nuevos**, con la misma estructura de carpetas
-del proyecto. No trae `inc/config.php`, así que su configuración local no se toca.
+Esta es la guía del proyecto **ya unificado**. No se deben reemplazar archivos completos de otra carpeta: la versión actual conserva autenticación, paginación, umbrales de riesgo, mapa v2, chatbot y las funcionalidades existentes.
 
-## Paso 0 · Backup (30 seg)
-En la carpeta del proyecto:
+## Paso 0 · Backup
+Antes de modificar datos o configuración:
+
 ```bash
 git add -A
-git commit -m "Backup antes de integrar mapa + clima"
+git commit -m "Backup antes de una actualización"
 ```
-(o copiar la carpeta `formosahack-2026` a `formosahack-2026-backup`).
 
-## Paso 1 · Copiar los archivos
-1. Descomprimir el zip: aparece la carpeta `actualizacion-caszamosqui/`.
-2. Entrar a esa carpeta, **seleccionar todo su contenido** (api, assets, database, docs, index.php, README.md, .gitignore, .htaccess).
-3. Pegarlo dentro de `C:\xampp\htdocs\formosahack-2026\` → **"Reemplazar los archivos en el destino"**.
+También se puede copiar la carpeta `formosahack-2026` a `formosahack-2026-backup`.
 
-> Ojo: `.gitignore` y `.htaccess` son archivos ocultos. En el Explorador de Windows: Vista → "Elementos ocultos".
-
-| Acción | Archivo |
-|---|---|
-| Reemplaza | `index.php` · `assets/js/app.js` · `database/schema.sql` · `database/seed.sql` · `README.md` · `.gitignore` · `.htaccess` · `docs/DEMO.md` · `docs/SOLUCION.md` · `docs/DESAFIO.md` |
-| Nuevo | `api/clima.php` · `assets/js/clima.js` · `assets/js/calles.js` · `assets/css/clima.css` · `assets/css/mapa-plano.css` · `assets/img/plano-el-colorado.jpg` · `docs/CALLES.md` |
-| No se toca | `api/index.php` · `assets/css/styles.css` · `inc/*` · `scripts/setup.php` |
+## Paso 1 · Configuración local
+1. Copiá `inc/config.example.php` como `inc/config.php` si todavía no existe.
+2. Ajustá la base de datos.
+3. Cargá `AUTH_USERNAME` y `AUTH_PASSWORD_HASH` para la sección Reportes.
+4. Opcionalmente cargá `CLAUDE_API_KEY` para la respuesta IA del chatbot; la clave nunca se sube a Git.
+5. Conservá el archivo `.htaccess` para bloquear `inc`, `database`, `scripts` y `cache`.
 
 ## Paso 2 · Reconstruir la base de datos
 Con Apache y MySQL en verde en el XAMPP Control Panel, desde la carpeta del proyecto:
@@ -44,14 +39,17 @@ Abrir `http://localhost/formosahack-2026/` y apretar **Ctrl + F5** (para que no 
 
 Checklist:
 - [ ] Arriba aparece el panel **🌧️ Alerta climática** con el gráfico de lluvia.
-- [ ] El mapa muestra el **plano de El Colorado** con burbujas numeradas (El Arco en rojo y San Martín en amarillo con los umbrales 5+ / 3-4).
+- [ ] El mapa muestra el **plano vectorial de El Colorado** con etiquetas y zoom/arrastre (El Arco en rojo y San Martín en amarillo con los umbrales 5+ / 3-4).
 - [ ] Botones **Alto / Medio / Bajo** filtran los barrios del mapa.
-- [ ] Clic en **El Arco** → la lista muestra sus 5 criaderos.
+- [ ] Clic en **El Arco** → la lista muestra sus criaderos sin controlar.
 - [ ] **Verificar → Controlar** un reporte: baja el número del barrio en el mapa y suben los controlados.
 - [ ] **👍** suma un voto · **✕** elimina (pide confirmación).
 - [ ] En **+ Reportar**, al elegir un barrio, el campo Referencia sugiere sus calles.
 - [ ] "Criaderos más reportados" muestra los nombres de los tipos.
 - [ ] Quiz: al terminar, "Volver a intentar" reinicia.
+- [ ] El chatbot **Mosqui** aparece abajo a la derecha y responde desde la base local sin internet.
+- [ ] `?demo=1` permite demostrar varios aportes sin consumir el límite diario.
+- [ ] La sección Reportes pide login, muestra solo 4 reportes por página y permite cambiar de página.
 - [ ] F12 → pestaña Consola: sin errores en rojo.
 
 ## Paso 5 · Subir a GitHub

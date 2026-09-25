@@ -24,7 +24,8 @@ try {
   <title>Comentarios · <?= e(APP_NAME) ?></title>
   <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" type="image/jpeg">
   <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg">
-  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css?v=20260924-david-merge">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/chatbot.css?v=20260924-david-merge">
   <style>
     .comentarios-container { max-width: 900px; margin: 0 auto; }
     .comentario-form { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra); padding: 24px; margin-bottom: 24px; }
@@ -72,7 +73,7 @@ try {
       <a href="#" data-nav="reportes">Reportes</a>
       <a href="#" data-nav="nuevo">+ Reportar</a>
       <a href="#" data-nav="prevencion">Prevención</a>
-      <a href="#" data-nav="quiz">Quiz</a>
+      <a href="#" data-nav="quiz">Cuestionario</a>
       <a href="<?= e(BASE_URL) ?>/test-sintomas.php">Test de Síntomas</a>
       <a href="<?= e(BASE_URL) ?>/comentarios.php" class="active">Comentarios</a>
     </nav>
@@ -136,6 +137,7 @@ try {
 <script>
   window.BASE_URL = <?= json_encode(BASE_URL) ?>;
 </script>
-<script src="<?= e(BASE_URL) ?>/assets/js/comentarios.js?v=20240924"></script>
+<script src="<?= e(BASE_URL) ?>/assets/js/comentarios.js?v=20260924-david-merge"></script>
+<script src="<?= e(BASE_URL) ?>/assets/js/chatbot.js?v=20260924-david-merge"></script>
 </body>
 </html>

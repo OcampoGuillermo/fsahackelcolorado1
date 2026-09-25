@@ -15,24 +15,18 @@
 
 ## 3. Recorrido en vivo (2 min) — ¡lo más importante! ⭐
 
-1. **Alerta climática:** "Con la lluvia y el calor de estas dos semanas, el riesgo
-   climático está en ___: cada criadero pesa más". Mostrar el gráfico de lluvia.
-2. **Mapa de riesgo sobre el plano oficial de El Colorado:** barrios con semáforo y
-   número de criaderos sin controlar. Tocar **"Alto"** → quedan solo los barrios en
-   rojo. **Clic en El Arco** → lista filtrada de ese barrio.
-3. **KPIs:** totales reportados / sin controlar / verificados / controlados y %
-   de controlados (conectados a la base real).
+1. **Alerta climática:** "La lluvia y el calor de estas dos semanas forman parte del contexto ambiental; la plataforma los informa sin mezclarlos en el semáforo de cada barrio". Mostrar el gráfico de lluvia.
+2. **Mapa vectorial de riesgo sobre el plano oficial de El Colorado:** barrios con etiquetas, zoom, desplazamiento y número de criaderos sin controlar. Tocar **"Alto"** → quedan solo los barrios en rojo. **Clic en El Arco** → lista filtrada de ese barrio.
+3. **KPIs:** totales reportados / sin controlar / verificados / controlados y % de controlados (conectados a la base real).
 4. **Criaderos más reportados:** ranking por tipo (iconos y colores).
-5. **Crear un reporte en vivo:** elegir tipo + **barrio** → en "referencia" aparecen
-   las **calles reales del barrio** → aparece al instante en el mapa (**POST**).
-   Tip: reportar en un barrio en amarillo para que el jurado lo vea pasar a rojo.
-6. **Gestionar:** verificar → controlar el reporte (los KPIs y el mapa cambian
-   en vivo) (**PATCH**).
+5. **Crear un reporte en vivo:** elegir tipo + **barrio** → en "referencia" aparecen las **calles reales del barrio** → aparece al instante en el mapa (**POST**). Tip: usar `?demo=1` para mostrar varios aportes durante la demo.
+6. **Gestionar:** entrar a **Reportes** (`admin` / `admin123`), verificar → controlar el reporte; el número del barrio y los KPIs cambian en vivo (**PATCH**).
 7. **Votar:** 👍 suma votos (participación).
-8. **Prevención y quiz:** mostrar la guía y responder el quiz (concientización).
+8. **Prevención y cuestionario:** mostrar la guía visual y responder el cuestionario.
+9. **Chatbot Mosqui:** abrir el chat flotante, probar una pregunta sobre dengue y mostrar que la base local funciona sin internet; la IA es opcional.
 
 ## 4. Valor e impacto (1 min) 📈
-- **Alerta anticipada:** cruza cada reporte con la lluvia y la temperatura reales de la semana.
+- **Alerta informativa:** muestra la lluvia y la temperatura reales de la semana como contexto ambiental, sin mezclar ese dato en el semáforo de cada barrio.
 - Trabajamos sobre el **plano oficial** de El Colorado: 28 barrios y 147 calles reales.
 - Información **accesible y comprensible** (mapa + semáforo + guía).
 - **Participación real de la comunidad** (reportar, votar, aprender).

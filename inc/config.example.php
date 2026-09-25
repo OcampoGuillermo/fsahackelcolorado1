@@ -26,3 +26,8 @@ define('BASE_URL', '/formosahack-2026');
 // y reemplazar AUTH_PASSWORD_HASH por el resultado.
 define('AUTH_USERNAME', 'admin');
 define('AUTH_PASSWORD_HASH', '$2y$10$fap8ykp3Caa7RpqDs0HBiOZa2sc89Rpd3haniU4CQM5z.L6tHnEyq');
+
+// Chatbot "Mosqui": la clave es opcional y nunca debe subirse a Git.
+// Vacía = responde con la base local, sin internet y sin costo.
+define('CLAUDE_API_KEY', '');
+define('CLAUDE_MODEL', 'claude-haiku-4-5-20251001');

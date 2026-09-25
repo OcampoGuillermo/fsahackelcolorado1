@@ -13,7 +13,8 @@ require_once __DIR__ . '/inc/helpers.php';
   <title>Test de Síntomas · <?= e(APP_NAME) ?></title>
   <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" type="image/jpeg">
   <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg">
-  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css?v=20260924-david-merge">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/chatbot.css?v=20260924-david-merge">
   <style>
     .test-container { max-width: 720px; margin: 0 auto; }
     .test-card { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra); padding: 24px; margin-bottom: 16px; }
@@ -159,6 +160,7 @@ require_once __DIR__ . '/inc/helpers.php';
 </footer>
 
 <script>
+  window.BASE_URL = <?= json_encode(BASE_URL) ?>;
   const form = document.getElementById('form-sintomas');
   const btn = document.getElementById('btn-evaluar');
   const res = document.getElementById('resultado');
@@ -222,5 +224,6 @@ require_once __DIR__ . '/inc/helpers.php';
     }
   });
 </script>
+<script src="<?= e(BASE_URL) ?>/assets/js/chatbot.js?v=20260924-david-merge"></script>
 </body>
 </html>
