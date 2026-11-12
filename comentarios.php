@@ -75,27 +75,21 @@ try {
 
 <header class="topbar">
   <div class="container">
-    <div class="topbar-inner">
-      <nav class="topbar-nav">
-        <a href="#" data-nav="mapa">🗺️ Mapa de riesgo</a>
-        <a href="#" data-nav="nuevo">➕ Reportar</a>
-        <a href="#" data-nav="prevencion">🛡️ Prevención</a>
-        <a href="#" data-nav="salud">🏥 Centros de salud</a>
-        <a href="#" data-nav="quiz">🎯 Cuestionario</a>
-        <a href="<?= e(BASE_URL) ?>/test-sintomas.php">🩺 Test de Síntomas</a>
-        <a href="<?= e(BASE_URL) ?>/comentarios.php" class="active">💬 Comentarios</a>
-      </nav>
-      <div class="topbar-brand">
-        <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-center">
-        <div class="brand-text">
-          <h1><?= e(APP_NAME) ?></h1>
-          <p>Comentarios y Sugerencias</p>
-        </div>
-      </div>
-      <div class="topbar-mapa">
-        <span class="mapa-chip">📍 Formosa</span>
+    <div class="brand">
+      <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-img">
+      <div>
+        <h1><?= e(APP_NAME) ?></h1>
+        <p>Comentarios y Sugerencias</p>
       </div>
     </div>
+    <nav>
+      <a href="<?= e(BASE_URL) ?>/#mapa">Mapa de riesgo</a>
+      <a href="<?= e(BASE_URL) ?>/#nuevo">+ Reportar</a>
+      <a href="<?= e(BASE_URL) ?>/#prevencion">Prevención</a>
+      <a href="<?= e(BASE_URL) ?>/#quiz">Cuestionario</a>
+      <a href="<?= e(BASE_URL) ?>/test-sintomas.php">Test de Síntomas</a>
+      <a href="<?= e(BASE_URL) ?>/comentarios.php" class="active">Comentarios</a>
+    </nav>
   </div>
 </header>
 

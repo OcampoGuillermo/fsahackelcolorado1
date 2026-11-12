@@ -1,6 +1,6 @@
 <?php
 /**
- * Pie de página común (inicio, comentarios y test de síntomas).
+ * Pie de página común (inicio, comentarios y test de síntomas): logos + equipo.
  * Uso: require __DIR__ . '/inc/footer.php';
  */
 ?>
