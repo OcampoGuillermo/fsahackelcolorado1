@@ -15,7 +15,7 @@
 
    Para publicar cambios en los archivos cacheados: subir VERSION.
    ============================================================ */
-const VERSION = 'casza-v2-20261112';
+const VERSION = 'casza-v3-20261112';
 const CACHE_APP = `${VERSION}-app`;
 const CACHE_DATOS = `${VERSION}-datos`;
 const CACHE_MAPA = 'casza-teselas-v1';   // independiente de VERSION: las teselas no cambian
@@ -26,6 +26,10 @@ const BASE = new URL('./', self.location).pathname;   // "/" en Render, "/formos
 
 const PRECARGA = [
   './',
+  'reportar.php',
+  'prevencion.php',
+  'centros-salud.php',
+  'cuestionario.php',
   'comentarios.php',
   'test-sintomas.php',
   'manifest.webmanifest',
@@ -211,7 +215,9 @@ self.addEventListener('fetch', (ev) => {
 
   // Páginas públicas
   if (req.mode === 'navigate') {
-    if (ruta === '' || ruta === 'index.php' || ruta === 'comentarios.php' || ruta === 'test-sintomas.php') {
+    if (ruta === '' || ruta === 'index.php' || ruta === 'reportar.php' || ruta === 'prevencion.php'
+        || ruta === 'centros-salud.php' || ruta === 'cuestionario.php'
+        || ruta === 'comentarios.php' || ruta === 'test-sintomas.php') {
       // La página guardada no depende de la query (?origen=app, ?demo=1…)
       const clave = new Request(new URL(ruta === 'index.php' ? './' : ruta || './', self.location).href);
       ev.respondWith(redPrimero(req, CACHE_APP, clave));
