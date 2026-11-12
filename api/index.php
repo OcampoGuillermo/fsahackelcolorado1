@@ -7,14 +7,22 @@
  *   GET    /api/?route=barrios
  *   GET    /api/?route=reportes            (requiere sesión; filtros: ?tipo=&barrio=&estado=&q=&pagina=&por_pagina=)
  *   GET    /api/?route=reportes/{id}       (requiere sesión)
- *   POST   /api/?route=reportes            (body JSON)
- *   PATCH  /api/?route=reportes/{id}       (estado: pendiente|verificado|controlado)
- *   DELETE /api/?route=reportes/{id}
+ *   POST   /api/?route=reportes            (body JSON · PÚBLICO: cualquier vecino puede reportar)
+ *   PATCH  /api/?route=reportes/{id}       (requiere sesión · estado: pendiente|verificado|controlado, o voto)
+ *   DELETE /api/?route=reportes/{id}       (requiere sesión)
  *   GET    /api/?route=stats               (KPIs + índice de riesgo por barrio)
+ *   GET    /api/?route=reportes/{id}/foto  (requiere sesión · devuelve la imagen)
+ *   DELETE /api/?route=reportes/{id}/foto  (requiere sesión)
+ *   GET    /api/?route=reportes-mapa       (requiere sesión · reportes con ubicación GPS)
+ *   GET    /api/?route=respaldo            (requiere sesión · descarga todo en JSON)
+ *   POST   /api/?route=respaldo            (requiere sesión · restaura un respaldo)
+ *   POST reportes acepta además (opcionales): lat, lng y foto (data URL JPEG/PNG/WebP, máx. ~600 KB)
+ *   PATCH reportes/{id} acepta además: {"ubicacion": {"lat":..,"lng":..}} o {"ubicacion": null}
  */
 
 require_once __DIR__ . '/../inc/helpers.php';
 require_once __DIR__ . '/../inc/auth.php';
+require_once __DIR__ . '/../inc/riesgo.php';
 
 /* ---------- Resolución de la ruta ---------- */
 $route = $_GET['route'] ?? '';
@@ -50,6 +58,104 @@ function validar_estado(string $estado): bool
 function url_base(): string
 {
     return BASE_URL . '/api';
+}
+
+/* ---------- GPS y fotos ---------- */
+
+// Zona válida: El Colorado y alrededores (evita puntos de otro lugar o datos basura)
+const GEO_LAT_MIN = -26.37, GEO_LAT_MAX = -26.26;
+const GEO_LNG_MIN = -59.43, GEO_LNG_MAX = -59.30;
+const FOTO_MAX_BYTES = 600 * 1024;   // el celular la achica antes (~150 KB); esto es el tope de seguridad
+
+/** Devuelve [lat, lng] válidos, null si no vino ubicación, o corta con error si es inválida. */
+function leer_ubicacion($lat, $lng): ?array
+{
+    if (($lat === null || $lat === '') && ($lng === null || $lng === '')) {
+        return null;
+    }
+    if (!is_numeric($lat) || !is_numeric($lng)) {
+        json_error('La ubicación no es válida.');
+    }
+    $lat = round((float) $lat, 6);
+    $lng = round((float) $lng, 6);
+    if ($lat < GEO_LAT_MIN || $lat > GEO_LAT_MAX || $lng < GEO_LNG_MIN || $lng > GEO_LNG_MAX) {
+        json_error('La ubicación marcada está fuera de El Colorado. Revisá el punto en el mapa.');
+    }
+    return [$lat, $lng];
+}
+
+/** Valida una foto enviada como data URL y devuelve [binario, mime, ancho, alto], o null si no vino. */
+function leer_foto($dataUrl): ?array
+{
+    if ($dataUrl === null || $dataUrl === '') {
+        return null;
+    }
+    if (!is_string($dataUrl) || !preg_match('#^data:(image/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$#', $dataUrl, $m)) {
+        json_error('La foto no tiene un formato válido (usá JPG, PNG o WebP).');
+    }
+    if (strlen($m[2]) > FOTO_MAX_BYTES * 1.4) {
+        json_error('La foto es demasiado pesada.');
+    }
+    $bin = base64_decode($m[2], true);
+    if ($bin === false || strlen($bin) > FOTO_MAX_BYTES) {
+        json_error('La foto es demasiado pesada o está dañada.');
+    }
+    $info = @getimagesizefromstring($bin);
+    if (!$info || !in_array($info['mime'], ['image/jpeg', 'image/png', 'image/webp'], true)) {
+        json_error('El archivo enviado no es una imagen válida.');
+    }
+    if ($info[0] > 4000 || $info[1] > 4000) {
+        json_error('La foto es demasiado grande.');
+    }
+    return [$bin, $info['mime'], (int) $info[0], (int) $info[1]];
+}
+
+function guardar_foto(int $reporteId, array $foto): void
+{
+    [$bin, $mime, $ancho, $alto] = $foto;
+    $stmt = db()->prepare(
+        'INSERT INTO fotos_reporte (reporte_id, mime, datos, ancho, alto, bytes) VALUES (?, ?, ?, ?, ?, ?)'
+    );
+    $stmt->bindValue(1, $reporteId, PDO::PARAM_INT);
+    $stmt->bindValue(2, $mime);
+    $stmt->bindValue(3, $bin, PDO::PARAM_LOB);
+    $stmt->bindValue(4, $ancho, PDO::PARAM_INT);
+    $stmt->bindValue(5, $alto, PDO::PARAM_INT);
+    $stmt->bindValue(6, strlen($bin), PDO::PARAM_INT);
+    $stmt->execute();
+}
+
+/** En PostgreSQL los BYTEA llegan como stream; en MySQL como texto. */
+function blob_a_texto($v): string
+{
+    return is_resource($v) ? (string) stream_get_contents($v) : (string) $v;
+}
+
+/**
+ * Filtros de la lista de reportes (los mismos del panel): tipo, barrio, estado y búsqueda.
+ * Devuelve [where, parámetros]. Lo usan la lista paginada y la exportación a Excel.
+ */
+function filtros_reportes(array $get): array
+{
+    $tipo   = val($get['tipo'] ?? '');
+    $barrio = val($get['barrio'] ?? '');
+    $estado = val($get['estado'] ?? '');
+    $q      = trim((string) ($get['q'] ?? ''));
+    $where  = ' WHERE 1=1';
+    $pars   = [];
+    if ($tipo !== '')   { $where .= ' AND r.tipo_id = ?';   $pars[] = (int) $tipo; }
+    if ($barrio !== '') { $where .= ' AND r.barrio_id = ?'; $pars[] = (int) $barrio; }
+    if ($estado !== '' && validar_estado($estado)) {
+        $where .= ' AND r.estado = ?';
+        $pars[] = $estado;
+    }
+    if ($q !== '') {
+        // LOWER() hace la búsqueda insensible a mayúsculas también en PostgreSQL
+        $where .= ' AND (LOWER(r.titulo) LIKE LOWER(?) OR LOWER(r.descripcion) LIKE LOWER(?) OR LOWER(r.referencia) LIKE LOWER(?) OR LOWER(b.nombre) LIKE LOWER(?) OR LOWER(t.nombre) LIKE LOWER(?))';
+        $like = "%{$q}%";
+        array_push($pars, $like, $like, $like, $like, $like);
+    }
+    return [$where, $pars];
 }
 
 /** La consulta y la gestión de reportes requieren la sesión de Reportes. */
@@ -107,7 +213,7 @@ if ($route === 'stats' && $method === 'GET') {
 
     // Índice de riesgo por barrio (semáforo)
     //   activos = pendientes + verificados   |   controlados = controlado
-    //   0-2 bajo · 3-4 medio · 5 o más alto
+    //   riesgo = activos / (controlados + 1)   (fórmula simple, documentada en docs)
     $riesgo = db()->query(
         "SELECT b.id, b.nombre, b.localidad, b.x, b.y,
                 SUM(CASE WHEN r.estado IN ('pendiente','verificado') THEN 1 ELSE 0 END) AS activos,
@@ -121,10 +227,9 @@ if ($route === 'stats' && $method === 'GET') {
     foreach ($riesgo as &$b) {
         $activos     = (int) $b['activos'];
         $controlados = (int) $b['controlados'];
-        // El número y el color usan únicamente criaderos sin controlar.
+        // Índice de riesgo activo = criaderos sin controlar en el barrio (reglas en inc/riesgo.php)
         $b['indice'] = $activos;
-        $b['nivel']  = $activos >= 5 ? 'alto'
-                     : ($activos >= 3 ? 'medio' : 'bajo');
+        $b['nivel']  = nivel_por_indice($activos);
         unset($b['activos'], $b['controlados']);
     }
 
@@ -149,28 +254,9 @@ if ($route === 'stats' && $method === 'GET') {
 if (preg_match('#^reportes$#', $route) && $method === 'GET') {
     exigir_acceso_reportes();
 
-    $tipo   = val($_GET['tipo'] ?? '');
-    $barrio = val($_GET['barrio'] ?? '');
-    $estado = val($_GET['estado'] ?? '');
-    $q      = trim($_GET['q'] ?? '');
+    [$where, $pars] = filtros_reportes($_GET);
     $paginaSolicitada = max(1, (int) ($_GET['pagina'] ?? $_GET['page'] ?? 1));
     $porPagina = min(200, max(1, (int) ($_GET['por_pagina'] ?? $_GET['limit'] ?? 4)));
-
-    // Se construye una sola condición para contar y luego traer la página actual.
-    $where = ' WHERE 1=1';
-    $pars  = [];
-
-    if ($tipo !== '')   { $where .= ' AND r.tipo_id = ?';   $pars[] = (int) $tipo; }
-    if ($barrio !== '') { $where .= ' AND r.barrio_id = ?'; $pars[] = (int) $barrio; }
-    if ($estado !== '' && validar_estado($estado)) {
-        $where .= ' AND r.estado = ?';
-        $pars[] = $estado;
-    }
-    if ($q !== '') {
-        $where .= ' AND (r.titulo LIKE ? OR r.descripcion LIKE ? OR r.referencia LIKE ? OR b.nombre LIKE ? OR t.nombre LIKE ?)';
-        $like = "%{$q}%";
-        array_push($pars, $like, $like, $like, $like, $like);
-    }
 
     $countStmt = db()->prepare(
         "SELECT COUNT(*)
@@ -189,7 +275,8 @@ if (preg_match('#^reportes$#', $route) && $method === 'GET') {
     $offset = ($pagina - 1) * $porPagina;
 
     $sql = "SELECT r.id, r.titulo, r.descripcion, r.referencia, r.estado, r.votos,
-                   r.creado_en,
+                   r.creado_en, r.lat, r.lng,
+                   CASE WHEN EXISTS (SELECT 1 FROM fotos_reporte f WHERE f.reporte_id = r.id) THEN 1 ELSE 0 END AS tiene_foto,
                    t.nombre AS tipo, t.color, t.icono,
                    b.nombre AS barrio, b.localidad
               FROM reportes r
@@ -205,14 +292,14 @@ if (preg_match('#^reportes$#', $route) && $method === 'GET') {
         'ok'   => true,
         'data' => $stmt->fetchAll(),
         'meta' => [
-            'pagina'        => $pagina,
-            'por_pagina'    => $porPagina,
-            'total'         => $total,
-            'total_paginas' => $totalPaginas,
-            'tiene_anterior' => $pagina > 1,
+            'pagina'          => $pagina,
+            'por_pagina'      => $porPagina,
+            'total'           => $total,
+            'total_paginas'   => $totalPaginas,
+            'tiene_anterior'  => $pagina > 1,
             'tiene_siguiente' => $pagina < $totalPaginas,
-            'desde'         => $total > 0 ? $offset + 1 : 0,
-            'hasta'         => min($offset + $porPagina, $total),
+            'desde'           => $total > 0 ? $offset + 1 : 0,
+            'hasta'           => min($offset + $porPagina, $total),
         ],
     ]);
 }
@@ -239,6 +326,15 @@ if (preg_match('#^reportes/(\d+)$#', $route, $m)) {
 
     if ($method === 'PATCH' || $method === 'PUT') {
         $body = body_json();
+        // El administrador puede mover o quitar el pin del criadero
+        if (array_key_exists('ubicacion', $body)) {
+            $u = $body['ubicacion'];
+            $ubic = is_array($u) ? leer_ubicacion($u['lat'] ?? null, $u['lng'] ?? null) : null;
+            $stmt = db()->prepare('UPDATE reportes SET lat = ?, lng = ? WHERE id = ?');
+            $stmt->execute([$ubic[0] ?? null, $ubic[1] ?? null, $id]);
+            if ($stmt->rowCount() === 0) json_error('Reporte no encontrado', 404);
+            json_response(['ok' => true, 'message' => $ubic ? 'Ubicación actualizada' : 'Ubicación quitada']);
+        }
         // Si no viene estado, permitir sumar votos (participación comunitaria)
         if (isset($body['votos'])) {
             $stmt = db()->prepare('UPDATE reportes SET votos = votos + 1 WHERE id = ?');
@@ -263,6 +359,251 @@ if (preg_match('#^reportes/(\d+)$#', $route, $m)) {
     }
 }
 
+// FOTO de un reporte (solo administrador)
+if (preg_match('#^reportes/(\d+)/foto$#', $route, $m)) {
+    exigir_acceso_reportes();
+    $id = (int) $m[1];
+
+    if ($method === 'GET') {
+        $stmt = db()->prepare('SELECT mime, datos FROM fotos_reporte WHERE reporte_id = ?');
+        $stmt->execute([$id]);
+        $f = $stmt->fetch();
+        if (!$f) json_error('Este reporte no tiene foto.', 404);
+        $bin = blob_a_texto($f['datos']);
+        header('Content-Type: ' . $f['mime']);
+        header('Content-Length: ' . strlen($bin));
+        header('Cache-Control: private, max-age=3600');
+        header('X-Content-Type-Options: nosniff');
+        echo $bin;
+        exit;
+    }
+
+    if ($method === 'DELETE') {
+        $stmt = db()->prepare('DELETE FROM fotos_reporte WHERE reporte_id = ?');
+        $stmt->execute([$id]);
+        if ($stmt->rowCount() === 0) json_error('Este reporte no tenía foto.', 404);
+        json_response(['ok' => true, 'message' => 'Foto eliminada']);
+    }
+}
+
+// REPORTES con ubicación GPS para el mapa del administrador
+if ($route === 'reportes-mapa' && $method === 'GET') {
+    exigir_acceso_reportes();
+    $stmt = db()->query(
+        "SELECT r.id, r.titulo, r.referencia, r.estado, r.votos, r.creado_en, r.lat, r.lng, r.barrio_id,
+                t.nombre AS tipo, t.icono, t.color, b.nombre AS barrio,
+                CASE WHEN EXISTS (SELECT 1 FROM fotos_reporte f WHERE f.reporte_id = r.id) THEN 1 ELSE 0 END AS tiene_foto
+           FROM reportes r
+           JOIN tipos_criadero t ON t.id = r.tipo_id
+           JOIN barrios b        ON b.id = r.barrio_id
+          WHERE r.lat IS NOT NULL AND r.lng IS NOT NULL
+          ORDER BY r.creado_en DESC"
+    );
+    json_response(['ok' => true, 'data' => $stmt->fetchAll()]);
+}
+
+// MAPA DE CALOR: criaderos activos (sin controlar + verificados) para el administrador.
+// Los que tienen GPS van con su punto exacto; los demás, al centro de su barrio (lo ubica el navegador).
+if ($route === 'reportes-calor' && $method === 'GET') {
+    exigir_acceso_reportes();
+    $stmt = db()->query(
+        "SELECT r.id, r.estado, r.lat, r.lng, r.barrio_id
+           FROM reportes r
+          WHERE r.estado IN ('pendiente', 'verificado')"
+    );
+    $puntos = array_map(fn ($r) => [
+        'id'        => (int) $r['id'],
+        'estado'    => $r['estado'],
+        'lat'       => $r['lat'] !== null ? (float) $r['lat'] : null,
+        'lng'       => $r['lng'] !== null ? (float) $r['lng'] : null,
+        'barrio_id' => (int) $r['barrio_id'],
+    ], $stmt->fetchAll());
+    json_response(['ok' => true, 'data' => $puntos]);
+}
+
+// RESPALDO completo (para mudar la base gratuita de Render a una nueva)
+const RESPALDO_TABLAS = [
+    'tipos_criadero' => ['id', 'nombre', 'color', 'icono'],
+    'barrios'        => ['id', 'nombre', 'localidad', 'x', 'y', 'poblacion'],
+    'reportes'       => ['id', 'tipo_id', 'barrio_id', 'titulo', 'descripcion', 'referencia', 'estado', 'votos', 'creado_en', 'lat', 'lng', 'cliente_id'],
+    'comentarios'    => ['id', 'barrio_id', 'tipo', 'texto', 'creado_en'],
+    'fotos_reporte'  => ['reporte_id', 'mime', 'datos', 'ancho', 'alto', 'bytes', 'creado_en'],
+];
+
+if ($route === 'respaldo' && $method === 'GET') {
+    exigir_acceso_reportes();
+    $tablas = [];
+    foreach (RESPALDO_TABLAS as $tabla => $cols) {
+        $orden = $tabla === 'fotos_reporte' ? 'reporte_id' : 'id';
+        $filas = db()->query('SELECT ' . implode(', ', $cols) . " FROM $tabla ORDER BY $orden")->fetchAll();
+        if ($tabla === 'fotos_reporte') {
+            foreach ($filas as &$f) {
+                $f['datos'] = base64_encode(blob_a_texto($f['datos']));
+            }
+            unset($f);
+        }
+        $tablas[$tabla] = $filas;
+    }
+    $nombre = 'caszamosqui-respaldo-' . date('Y-m-d-Hi') . '.json';
+    header('Content-Disposition: attachment; filename="' . $nombre . '"');
+    header('Cache-Control: no-store');
+    json_response([
+        'app'      => 'CaszaMosqui',
+        'formato'  => 2,
+        'generado' => date('Y-m-d H:i:s'),
+        'motor'    => db_driver(),
+        'totales'  => array_map('count', $tablas),
+        'tablas'   => $tablas,
+    ]);
+}
+
+if ($route === 'respaldo' && $method === 'POST') {
+    exigir_acceso_reportes();
+    if (stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') === false) {
+        json_error('Formato de envío inválido.', 415);
+    }
+    $b = body_json();
+    if (($b['confirmar'] ?? '') !== 'RESTAURAR') {
+        json_error('Falta la confirmación para restaurar.');
+    }
+    $r = $b['respaldo'] ?? null;
+    if (!is_array($r) || ($r['app'] ?? '') !== 'CaszaMosqui' || !is_array($r['tablas'] ?? null)) {
+        json_error('El archivo no es un respaldo de CaszaMosqui.');
+    }
+    foreach (['tipos_criadero', 'barrios', 'reportes'] as $obligatoria) {
+        if (!isset($r['tablas'][$obligatoria]) || !is_array($r['tablas'][$obligatoria]) || !$r['tablas'][$obligatoria]) {
+            if ($obligatoria !== 'reportes') json_error("Al respaldo le falta la tabla $obligatoria.");
+        }
+    }
+
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        foreach (array_reverse(array_keys(RESPALDO_TABLAS)) as $tabla) {
+            $pdo->exec("DELETE FROM $tabla");
+        }
+        $totales = [];
+        foreach (RESPALDO_TABLAS as $tabla => $cols) {
+            $filas = is_array($r['tablas'][$tabla] ?? null) ? $r['tablas'][$tabla] : [];
+            $stmt = $pdo->prepare(
+                "INSERT INTO $tabla (" . implode(', ', $cols) . ') VALUES (' . implode(', ', array_fill(0, count($cols), '?')) . ')'
+            );
+            foreach ($filas as $fila) {
+                if (!is_array($fila)) continue;
+                foreach ($cols as $i => $col) {
+                    $v = $fila[$col] ?? null;
+                    if ($tabla === 'fotos_reporte' && $col === 'datos') {
+                        $bin = base64_decode((string) $v, true);
+                        if ($bin === false) throw new RuntimeException('Foto dañada en el respaldo.');
+                        $stmt->bindValue($i + 1, $bin, PDO::PARAM_LOB);
+                    } elseif ($v === null) {
+                        $stmt->bindValue($i + 1, null, PDO::PARAM_NULL);
+                    } else {
+                        $stmt->bindValue($i + 1, is_scalar($v) ? (string) $v : json_encode($v));
+                    }
+                }
+                $stmt->execute();
+            }
+            $totales[$tabla] = count($filas);
+        }
+        if (db_driver() === 'pgsql') {
+            foreach (['tipos_criadero', 'barrios', 'reportes', 'comentarios'] as $tabla) {
+                $pdo->query("SELECT setval(pg_get_serial_sequence('$tabla', 'id'), COALESCE((SELECT MAX(id) FROM $tabla), 1), (SELECT COUNT(*) FROM $tabla) > 0)");
+            }
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        error_log('[CaszaMosqui] Error al restaurar respaldo: ' . $e->getMessage());
+        json_error('No se pudo restaurar: ' . $e->getMessage() . ' (no se cambió nada).', 400);
+    }
+    json_response(['ok' => true, 'message' => 'Respaldo restaurado', 'totales' => $totales]);
+}
+
+// EXPORTAR reportes a Excel (solo administrador). Usa los mismos filtros que la lista.
+if ($route === 'reportes-excel' && $method === 'GET') {
+    exigir_acceso_reportes();
+    require_once __DIR__ . '/../inc/xlsx.php';
+
+    [$where, $pars] = filtros_reportes($_GET);
+    $stmt = db()->prepare(
+        "SELECT r.id, r.creado_en, r.estado, t.nombre AS tipo, b.nombre AS barrio, r.titulo, r.descripcion,
+                r.referencia, r.votos, r.lat, r.lng,
+                CASE WHEN EXISTS (SELECT 1 FROM fotos_reporte f WHERE f.reporte_id = r.id) THEN 1 ELSE 0 END AS tiene_foto
+           FROM reportes r
+           JOIN tipos_criadero t ON t.id = r.tipo_id
+           JOIN barrios b        ON b.id = r.barrio_id
+         $where
+          ORDER BY r.creado_en DESC, r.id DESC"
+    );
+    $stmt->execute($pars);
+    $nombresEstado = ['pendiente' => 'Sin controlar', 'verificado' => 'Verificado', 'controlado' => 'Controlado'];
+
+    $filas = [];
+    foreach ($stmt->fetchAll() as $r) {
+        $conGps = $r['lat'] !== null && $r['lng'] !== null;
+        $filas[] = [
+            (int) $r['id'],
+            substr((string) $r['creado_en'], 0, 16),
+            $nombresEstado[$r['estado']] ?? $r['estado'],
+            $r['tipo'],
+            $r['barrio'],
+            $r['titulo'],
+            $r['descripcion'],
+            $r['referencia'],
+            (int) $r['votos'],
+            (int) $r['tiene_foto'] === 1 ? 'Sí' : 'No',
+            $conGps ? round((float) $r['lat'], 6) : null,
+            $conGps ? round((float) $r['lng'], 6) : null,
+            $conGps ? 'https://www.google.com/maps?q=' . round((float) $r['lat'], 6) . ',' . round((float) $r['lng'], 6) : null,
+        ];
+    }
+
+    // Resumen por barrio (todos los reportes, sin filtros, para ver el panorama completo)
+    $resumen = db()->query(
+        "SELECT b.nombre,
+                SUM(CASE WHEN r.estado = 'pendiente'  THEN 1 ELSE 0 END) AS pendientes,
+                SUM(CASE WHEN r.estado = 'verificado' THEN 1 ELSE 0 END) AS verificados,
+                SUM(CASE WHEN r.estado = 'controlado' THEN 1 ELSE 0 END) AS controlados,
+                COUNT(r.id) AS total
+           FROM barrios b
+           LEFT JOIN reportes r ON r.barrio_id = b.id
+          GROUP BY b.id, b.nombre
+          ORDER BY (SUM(CASE WHEN r.estado IN ('pendiente','verificado') THEN 1 ELSE 0 END)) DESC, b.nombre"
+    )->fetchAll();
+    $filasResumen = [];
+    $niveles = ['alto' => '🔴 Alto', 'medio' => '🟠 Medio', 'bajo' => '🟢 Bajo'];
+    foreach ($resumen as $b) {
+        $activos = (int) $b['pendientes'] + (int) $b['verificados'];
+        $filasResumen[] = [$b['nombre'], (int) $b['pendientes'], (int) $b['verificados'], (int) $b['controlados'],
+                           (int) $b['total'], $activos, $niveles[nivel_por_indice($activos)]];
+    }
+
+    $filtros = [];
+    foreach (['estado' => 'Estado', 'tipo' => 'Tipo (id)', 'barrio' => 'Barrio (id)', 'q' => 'Búsqueda'] as $k => $txt) {
+        if (trim((string) ($_GET[$k] ?? '')) !== '') $filtros[] = [$txt, (string) $_GET[$k]];
+    }
+
+    $x = new XlsxSimple();
+    $x->hoja('Reportes', ['ID', 'Fecha', 'Estado', 'Tipo de criadero', 'Barrio', 'Título', 'Descripción', 'Referencia',
+                          'Votos', 'Foto', 'Latitud', 'Longitud', 'Ubicación'], $filas, [
+        'anchos'  => [7, 17, 14, 22, 20, 30, 50, 28, 7, 7, 11, 11, 16],
+        'ajustar' => [5 => true, 6 => true, 7 => true],
+        'links'   => [12 => true],
+    ]);
+    $x->hoja('Resumen por barrio', ['Barrio', 'Sin controlar', 'Verificados', 'Controlados', 'Total', 'Activos', 'Semáforo'],
+             $filasResumen, ['anchos' => [26, 14, 12, 12, 9, 9, 12]]);
+    $x->hoja('Información', ['Dato', 'Valor'], array_merge([
+        ['Generado', date('d/m/Y H:i')],
+        ['Reportes en la hoja "Reportes"', count($filas)],
+        ['Filtros aplicados', $filtros ? 'Sí' : 'Ninguno (todos los reportes)'],
+    ], $filtros, [
+        ['Semáforo', 'Activos = sin controlar + verificados. 0-1 bajo · 2-3 medio · 4 o más alto (sin contar el clima).'],
+        ['Fuente', 'CaszaMosqui · El Colorado, Formosa'],
+    ]), ['anchos' => [30, 90], 'ajustar' => [1 => true]]);
+    $x->descargar('caszamosqui-reportes-' . date('Y-m-d') . '.xlsx');
+}
+
 // CREAR reporte
 if ($route === 'reportes' && $method === 'POST') {
     $b = body_json();
@@ -282,14 +623,56 @@ if ($route === 'reportes' && $method === 'POST') {
     if ($tipo_id < 1)   json_error('Debe elegir un tipo de criadero.');
     if ($barrio_id < 1) json_error('Debe elegir el barrio.');
 
-    $stmt = db()->prepare(
-        'INSERT INTO reportes (tipo_id, barrio_id, titulo, descripcion, referencia)
-         VALUES (?, ?, ?, ?, ?)'
-    );
-    $stmt->execute([$tipo_id, $barrio_id, $titulo, $descripcion, $referencia]);
-    $id = (int) db()->lastInsertId();
+    // Opcionales: ubicación GPS y foto (el reporte funciona igual sin ellas)
+    $ubic = leer_ubicacion($b['lat'] ?? null, $b['lng'] ?? null);
+    $foto = leer_foto($b['foto'] ?? null);
 
-    $stmt = db()->prepare('SELECT * FROM reportes WHERE id = ?');
+    // Identificador del celular: si el mismo reporte llega dos veces (reenvío sin señal), se guarda una sola
+    $clienteId = trim((string) ($b['cliente_id'] ?? ''));
+    if ($clienteId !== '' && !preg_match('/^[A-Za-z0-9-]{8,40}$/', $clienteId)) {
+        json_error('Identificador de envío inválido.');
+    }
+    $buscarDuplicado = function () use ($clienteId): ?int {
+        if ($clienteId === '') return null;
+        $st = db()->prepare('SELECT id FROM reportes WHERE cliente_id = ?');
+        $st->execute([$clienteId]);
+        $v = $st->fetchColumn();
+        return $v === false ? null : (int) $v;
+    };
+    $responderDuplicado = function (int $id): void {
+        $st = db()->prepare('SELECT id, estado, creado_en FROM reportes WHERE id = ?');
+        $st->execute([$id]);
+        json_response(['ok' => true, 'duplicado' => true, 'message' => 'Este reporte ya se había recibido', 'data' => $st->fetch()]);
+    };
+    if (($ya = $buscarDuplicado()) !== null) {
+        $responderDuplicado($ya);
+    }
+
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO reportes (tipo_id, barrio_id, titulo, descripcion, referencia, lat, lng, cliente_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([$tipo_id, $barrio_id, $titulo, $descripcion, $referencia,
+                        $ubic[0] ?? null, $ubic[1] ?? null, $clienteId !== '' ? $clienteId : null]);
+        $id = (int) $pdo->lastInsertId();
+        if ($foto) {
+            guardar_foto($id, $foto);
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        // Dos envíos simultáneos del mismo reporte: el segundo choca con el índice único
+        if (($ya = $buscarDuplicado()) !== null) {
+            $responderDuplicado($ya);
+        }
+        error_log('[CaszaMosqui] Error al guardar reporte: ' . $e->getMessage());
+        json_error('No se pudo guardar el reporte. Probá de nuevo.', 500);
+    }
+
+    $stmt = db()->prepare('SELECT id, tipo_id, barrio_id, titulo, estado, votos, creado_en FROM reportes WHERE id = ?');
     $stmt->execute([$id]);
 
     json_response(['ok' => true, 'message' => 'Criadero reportado', 'data' => $stmt->fetch()], 201);
@@ -300,7 +683,7 @@ if ($route === 'reportes' && $method === 'POST') {
 // LISTA de comentarios
 if (preg_match('#^comentarios$#', $route) && $method === 'GET') {
     $barrio = val($_GET['barrio'] ?? '');
-    $limit  = min(100, max(1, (int) ($_GET['limit'] ?? 50)));
+    $limit  = min(1000, max(1, (int) ($_GET['limit'] ?? 1000)));   // se muestran todos los comentarios
 
     $sql = "SELECT c.id, c.tipo, c.texto, c.creado_en, b.nombre AS barrio_nombre
             FROM comentarios c
@@ -312,7 +695,7 @@ if (preg_match('#^comentarios$#', $route) && $method === 'GET') {
         $sql .= ' AND c.barrio_id = ?';
         $pars[] = (int) $barrio;
     }
-    $sql .= ' ORDER BY c.creado_en DESC LIMIT ' . $limit;
+    $sql .= ' ORDER BY c.creado_en DESC, c.id DESC LIMIT ' . $limit;
 
     $stmt = db()->prepare($sql);
     $stmt->execute($pars);

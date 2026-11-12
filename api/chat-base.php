@@ -32,7 +32,20 @@ return [
   'que_hacer_sintomas' => [
     'claves' => ['que hago' => 2.5, 'que tengo que hacer' => 2.5, 'que hacer si' => 2.5, 'creo que tengo' => 3, 'me siento mal' => 2,
                  'tengo fiebre' => 3, 'a donde voy' => 2, 'donde me atiendo' => 3, 'consultar' => 1.5, 'medico' => 1],
-    'respuesta' => "Si tenés fiebre u otros síntomas:\n- **Consultá en el centro de salud u hospital** más cercano (en El Colorado, el hospital figura en el barrio San Martín según el plano municipal)\n- **Tomá mucho líquido** (agua, jugos, sales de rehidratación)\n- Hacé **reposo**\n- **No te automediques**: nada de aspirina ni ibuprofeno\n- Usá repelente y mosquitero para que ningún mosquito te pique y lleve el virus a otra persona\n\nSi aparecen **signos de alarma** (dolor de panza fuerte, vómitos que no paran, sangrados, mucho sueño), andá a la guardia o llamá al **107**.",
+    'respuesta' => "Si tenés fiebre u otros síntomas:\n- **Consultá en el centro de salud u hospital** más cercano (en El Colorado, el **Hospital** está en calle Santa Fe y tiene **guardia las 24 h**: (0370) 448-0024)\n- **Tomá mucho líquido** (agua, jugos, sales de rehidratación)\n- Hacé **reposo**\n- **No te automediques**: nada de aspirina ni ibuprofeno\n- Usá repelente y mosquitero para que ningún mosquito te pique y lleve el virus a otra persona\n\nSi aparecen **signos de alarma** (dolor de panza fuerte, vómitos que no paran, sangrados, mucho sueño), andá a la guardia o llamá al **107**.",
+  ],
+
+  'centros_salud' => [
+    'claves' => ['hospital' => 3, 'centro de salud' => 3, 'centros de salud' => 3, 'clinica' => 3, 'consultorio' => 3, 'guardia' => 1.5,
+                 'telefono' => 2, 'donde queda' => 2, 'direccion' => 2, 'horario' => 2, 'donde me atiendo' => 3.5, 'a donde voy' => 2.5, 'donde atenderme' => 3.5, 'sala' => 1],
+    'respuesta' => (function () {
+        $txt = "🏥 **Dónde atenderse en El Colorado:**\n";
+        foreach (require __DIR__ . '/../inc/centros-salud.php' as $c) {
+            $tel = $c['telefonos'] ? ' · 📞 ' . implode(' / ', array_map(fn ($t) => $t[1], $c['telefonos'])) : '';
+            $txt .= "- **{$c['nombre']}**: {$c['direccion']} · {$c['horario_txt']}{$tel}\n";
+        }
+        return $txt . "\nEn la sección **Centros de salud** de la página podés llamar con un toque y ver **cómo llegar** desde donde estás. Ante una emergencia, **107**.";
+    })(),
   ],
 
   'medicamentos' => [
@@ -165,7 +178,7 @@ return [
 
   'lluvia_clima' => [
     'claves' => ['lluvia' => 3, 'llueve' => 3, 'llovio' => 3, 'clima' => 3, 'calor' => 2, 'verano' => 2.5, 'invierno' => 3, 'temporada' => 3, 'frio' => 2.5],
-    'respuesta' => "El clima influye mucho:\n- **Después de las lluvias** los recipientes se llenan y los huevos que estaban secos **eclosionan**\n- Con **calor** (más de 20-25 °C) el ciclo es más rápido: 7 a 10 días de huevo a mosquito\n- En **invierno** hay menos mosquitos, pero **los huevos sobreviven**: por eso hay que descacharrar todo el año\n\nEn esta página, la **Alerta climática** usa la lluvia y temperatura reales de El Colorado para informar las condiciones que favorecen la actividad de los mosquitos.",
+    'respuesta' => "El clima influye mucho:\n- **Después de las lluvias** los recipientes se llenan y los huevos que estaban secos **eclosionan**\n- Con **calor** (más de 20-25 °C) el ciclo es más rápido: 7 a 10 días de huevo a mosquito\n- En **invierno** hay menos mosquitos, pero **los huevos sobreviven**: por eso hay que descacharrar todo el año\n\nEn esta página, la **Alerta climática** usa la lluvia y temperatura reales de El Colorado para avisar cuándo el riesgo sube.",
   ],
 
   /* ===================== MITOS ===================== */
@@ -184,7 +197,7 @@ return [
 
   'mapa_colores' => [
     'claves' => ['mapa' => 3, 'colores' => 3, 'rojo' => 2.5, 'amarillo' => 2, 'naranja' => 2.5, 'verde' => 2, 'semaforo' => 4, 'mi barrio' => 3, 'riesgo' => 1.5],
-    'respuesta' => "El **mapa de riesgo** muestra cada barrio de El Colorado con un color:\n- 🔴 **Rojo (alto)**: 5 o más criaderos sin controlar\n- 🟠 **Amarillo (medio)**: 3-4 criaderos sin controlar\n- 🟢 **Verde (bajo)**: 0-2 criaderos sin controlar\n\nEl número al lado del nombre son los **criaderos sin controlar**. La alerta climática se muestra como información separada y no cambia este semáforo. Tocá un barrio para ver sus criaderos.",
+    'respuesta' => "El **mapa de riesgo** muestra cada barrio de El Colorado con un color:\n- 🔴 **Rojo (alto)**: muchos criaderos sin controlar\n- 🟠 **Naranja (medio)**\n- 🟢 **Verde (bajo)**\n\nEl número al lado del nombre son los **criaderos sin controlar**. El color también tiene en cuenta el **clima de la semana**: después de lluvias con calor, el mismo barrio puede pasar a un nivel más alto. Tocá un barrio para ver sus criaderos.",
   ],
 
   'que_es_app' => [

@@ -7,7 +7,7 @@
    Habla con api/chat.php (base propia + IA opcional).
    ============================================================ */
 (function () {
-  const BASE = (window.CHAT_BASE_URL || window.BASE_URL || '.');
+  const BASE = (window.CHAT_BASE_URL ?? window.BASE_URL ?? '.');
   const SUGERENCIAS_INICIALES = [
     '¿Cuáles son los síntomas del dengue?',
     '¿Qué hago si tengo fiebre?',

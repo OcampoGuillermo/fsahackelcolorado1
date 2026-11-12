@@ -2,7 +2,7 @@
 /**
  * Comentarios y Sugerencias por Barrio — CaszaMosqui
  * FormosaHack 2026
- * 1 comentario por día por dispositivo (localStorage)
+ * Sin límite: cada vecino puede comentar todas las veces que quiera; se muestran todos los comentarios.
  */
 require_once __DIR__ . '/inc/helpers.php';
 require_once __DIR__ . '/inc/db.php';
@@ -22,10 +22,16 @@ try {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comentarios · <?= e(APP_NAME) ?></title>
-  <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" type="image/jpeg">
-  <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg">
-  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css?v=20260924-david-merge">
-  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/chatbot.css?v=20260924-david-merge">
+  <link rel="manifest" href="<?= e(BASE_URL) ?>/manifest.webmanifest">
+  <meta name="theme-color" content="#134e4a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="CaszaMosqui">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/app/favicon-48.png" type="image/png">
+  <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/app/apple-touch-icon.png">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css?v=20261112-salud">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/chatbot.css">
   <style>
     .comentarios-container { max-width: 900px; margin: 0 auto; }
     .comentario-form { background: var(--panel); border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra); padding: 24px; margin-bottom: 24px; }
@@ -50,7 +56,15 @@ try {
     .comentario-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
     .comentario-barrio { font-weight: 700; color: var(--acento); font-size: .95rem; }
     .comentario-fecha { font-size: .8rem; color: var(--suave); }
-    .comentario-texto { color: var(--texto); line-height: 1.6; white-space: pre-wrap; }
+    .comentario-texto { color: var(--texto); line-height: 1.6; white-space: pre-wrap; margin: 0; overflow-wrap: anywhere; }
+    .comentario-tipo { font-size: .78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #f1f5f9; color: var(--texto); margin-right: auto; }
+    .comentario-card.tipo-problema     { border-left-color: var(--rojo); }
+    .comentario-card.tipo-felicitacion { border-left-color: var(--verde); }
+    .comentario-card.tipo-otro         { border-left-color: #94a3b8; }
+    .comentario-card.comentario-nuevo  { animation: comentario-nuevo 2.5s ease-out; }
+    @keyframes comentario-nuevo { 0%, 40% { background: #ecfeff; box-shadow: 0 0 0 3px #67e8f9; } 100% { background: var(--panel); } }
+    .comentario-form .aviso.ok { color: var(--verde); font-weight: 600; }
+    #contador-comentarios { color: var(--suave); font-weight: 600; font-size: .95rem; }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--suave); }
     .btn-volver-inicio { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: .85rem; font-weight: 600; color: #fff; background: var(--suave); border: none; border-radius: 8px; cursor: pointer; text-decoration: none; transition: background .15s; margin-bottom: 24px; }
     .btn-volver-inicio:hover { background: #475569; }
@@ -61,22 +75,27 @@ try {
 
 <header class="topbar">
   <div class="container">
-    <div class="brand">
-      <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-img">
-      <div>
-        <h1><?= e(APP_NAME) ?></h1>
-        <p>Comentarios y Sugerencias</p>
+    <div class="topbar-inner">
+      <nav class="topbar-nav">
+        <a href="#" data-nav="mapa">🗺️ Mapa de riesgo</a>
+        <a href="#" data-nav="nuevo">➕ Reportar</a>
+        <a href="#" data-nav="prevencion">🛡️ Prevención</a>
+        <a href="#" data-nav="salud">🏥 Centros de salud</a>
+        <a href="#" data-nav="quiz">🎯 Cuestionario</a>
+        <a href="<?= e(BASE_URL) ?>/test-sintomas.php">🩺 Test de Síntomas</a>
+        <a href="<?= e(BASE_URL) ?>/comentarios.php" class="active">💬 Comentarios</a>
+      </nav>
+      <div class="topbar-brand">
+        <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-center">
+        <div class="brand-text">
+          <h1><?= e(APP_NAME) ?></h1>
+          <p>Comentarios y Sugerencias</p>
+        </div>
+      </div>
+      <div class="topbar-mapa">
+        <span class="mapa-chip">📍 Formosa</span>
       </div>
     </div>
-    <nav>
-      <a href="#" data-nav="mapa">Mapa de riesgo</a>
-      <a href="#" data-nav="reportes">Reportes</a>
-      <a href="#" data-nav="nuevo">+ Reportar</a>
-      <a href="#" data-nav="prevencion">Prevención</a>
-      <a href="#" data-nav="quiz">Cuestionario</a>
-      <a href="<?= e(BASE_URL) ?>/test-sintomas.php">Test de Síntomas</a>
-      <a href="<?= e(BASE_URL) ?>/comentarios.php" class="active">Comentarios</a>
-    </nav>
   </div>
 </header>
 
@@ -120,7 +139,7 @@ try {
   </section>
 
   <section>
-    <h3 style="margin-bottom: 16px;">📋 Comentarios de la comunidad</h3>
+    <h3 style="margin-bottom: 16px;">📋 Comentarios de la comunidad <span id="contador-comentarios"></span></h3>
     <div class="comentarios-lista" id="lista-comentarios">
       <p class="loading">Cargando comentarios…</p>
     </div>
@@ -128,16 +147,13 @@ try {
 
 </main>
 
-<footer>
-  <div class="container">
-    <p>🦟 <strong>CaszaMosqui</strong> · Equipo FormosaHack 2026 · Comentarios por barrio</p>
-  </div>
-</footer>
+<?php require __DIR__ . '/inc/footer.php'; ?>
 
 <script>
   window.BASE_URL = <?= json_encode(BASE_URL) ?>;
 </script>
-<script src="<?= e(BASE_URL) ?>/assets/js/comentarios.js?v=20260924-david-merge"></script>
-<script src="<?= e(BASE_URL) ?>/assets/js/chatbot.js?v=20260924-david-merge"></script>
+<script src="<?= e(BASE_URL) ?>/assets/js/comentarios.js"></script>
+<script src="<?= e(BASE_URL) ?>/assets/js/offline.js?v=20261111-app"></script>
+<script src="<?= e(BASE_URL) ?>/assets/js/chatbot.js"></script>
 </body>
 </html>
