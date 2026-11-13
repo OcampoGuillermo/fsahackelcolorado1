@@ -18,7 +18,7 @@ require __DIR__ . '/inc/cabecera.php';
 
   <!-- CENTROS DE SALUD -->
   <section class="panel" id="salud">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+    <a href="<?= e(BASE_URL) ?>/tradicional.php" class="btn-volver-inicio">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Volver Al Inicio
     </a>

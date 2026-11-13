@@ -15,7 +15,7 @@
 
    Para publicar cambios en los archivos cacheados: subir VERSION.
    ============================================================ */
-const VERSION = 'casza-v5-20261113';
+const VERSION = 'casza-v7-20261113';
 const CACHE_APP = `${VERSION}-app`;
 const CACHE_DATOS = `${VERSION}-datos`;
 const CACHE_MAPA = 'casza-teselas-v1';   // independiente de VERSION: las teselas no cambian
@@ -26,6 +26,8 @@ const BASE = new URL('./', self.location).pathname;   // "/" en Render, "/formos
 
 const PRECARGA = [
   './',
+  'tradicional.php',
+  'inmersivo.php',
   'reportar.php',
   'prevencion.php',
   'centros-salud.php',
@@ -37,11 +39,14 @@ const PRECARGA = [
   'test-sintomas.php',
   'manifest.webmanifest',
   'assets/css/styles.css',
+  'assets/css/portal.css',
+  'assets/css/inmersivo.css',
   'assets/css/chatbot.css',
   'assets/css/clima.css',
   'assets/css/leaflet.css',
   'assets/css/mapa-plano.css',
   'assets/js/app.js',
+  'assets/js/inmersivo.js',
   'assets/js/calles.js',
   'assets/js/clima.js',
   'assets/js/leaflet.js',
@@ -57,6 +62,7 @@ const PRECARGA = [
   'assets/js/chatbot.js',
   'assets/js/comentarios.js',
   'assets/img/logo-casza.jpeg',
+  'assets/img/logo-modo-inmersivo.jpg',
   'assets/img/mapa-el-colorado.svg',
   'assets/img/app/icono-192.png',
   'assets/img/logo-ipf.png',
@@ -222,7 +228,8 @@ self.addEventListener('fetch', (ev) => {
 
   // Páginas públicas
   if (req.mode === 'navigate') {
-    if (ruta === '' || ruta === 'index.php' || ruta === 'reportar.php' || ruta === 'prevencion.php'
+    if (ruta === '' || ruta === 'index.php' || ruta === 'tradicional.php' || ruta === 'inmersivo.php'
+        || ruta === 'reportar.php' || ruta === 'prevencion.php'
         || ruta === 'centros-salud.php' || ruta === 'cuestionario.php'
         || ruta === 'ayuda.php' || ruta === 'acerca.php' || ruta === 'contacto.php'
         || ruta === 'comentarios.php' || ruta === 'test-sintomas.php') {

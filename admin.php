@@ -8,7 +8,7 @@ require_once __DIR__ . '/inc/helpers.php';
 require_once __DIR__ . '/inc/auth.php';
 
 if (!reportes_logueado()) {
-    redirect(BASE_URL . '/?acceso=1');
+    redirect(BASE_URL . '/tradicional.php?acceso=1');
 }
 $reportes_csrf    = reportes_csrf_token();
 $reportes_usuario = usuario_reportes();
@@ -48,7 +48,7 @@ header('Pragma: no-cache');
     </div>
     <div class="admin-sesion">
       <span>👤 Sesión iniciada como <strong><?= e($reportes_usuario) ?></strong></span>
-      <a class="btn-admin-sec" href="<?= e(BASE_URL) ?>/">← Ver sitio público</a>
+      <a class="btn-admin-sec" href="<?= e(BASE_URL) ?>/tradicional.php">← Ver sitio público</a>
       <form method="post" action="<?= e(BASE_URL) ?>/reportes-auth.php" class="reportes-logout-form">
         <input type="hidden" name="accion" value="logout">
         <input type="hidden" name="csrf" value="<?= e($reportes_csrf) ?>">

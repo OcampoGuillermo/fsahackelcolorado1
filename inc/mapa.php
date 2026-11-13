@@ -1,7 +1,7 @@
 <?php /* Mapa de riesgo por barrio (se usa en el inicio y en el panel de administración) */ ?>
   <!-- MAPA DE RIESGO -->
   <section class="panel" id="mapa">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
+    <a href="<?= e(BASE_URL) ?>/tradicional.php" class="btn-volver-inicio">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       Volver Al Inicio
     </a>

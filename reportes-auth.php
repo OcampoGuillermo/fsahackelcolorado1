@@ -11,8 +11,8 @@ require_once __DIR__ . '/inc/helpers.php';
 require_once __DIR__ . '/inc/auth.php';
 
 $destinoPanel  = BASE_URL . '/admin.php';
-$destinoAcceso = BASE_URL . '/?acceso=1';
-$destinoInicio = BASE_URL . '/';
+$destinoAcceso = BASE_URL . '/tradicional.php?acceso=1';
+$destinoInicio = BASE_URL . '/tradicional.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');

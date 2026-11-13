@@ -56,7 +56,7 @@ if (!function_exists('nav_clase')) {
       </span>
     </a>
     <nav aria-label="Secciones">
-      <a href="<?= e(BASE_URL) ?>/"<?= nav_clase('mapa', $active_page) ?>>Mapa de riesgo</a>
+      <a href="<?= e(BASE_URL) ?>/tradicional.php"<?= nav_clase('mapa', $active_page) ?>>Mapa de riesgo</a>
       <a href="<?= e(BASE_URL) ?>/reportar.php"<?= nav_clase('reportar', $active_page) ?>>+ Reportar</a>
       <a href="<?= e(BASE_URL) ?>/prevencion.php"<?= nav_clase('prevencion', $active_page) ?>>Prevención</a>
       <a href="<?= e(BASE_URL) ?>/centros-salud.php"<?= nav_clase('salud', $active_page) ?>>Centros de salud</a>

@@ -1,0 +1,244 @@
+/* ============================================================
+   CaszaMosqui — Portada de acceso (dos modos a pantalla completa)
+   ============================================================ */
+
+@font-face {
+  font-family: "Inter Display";
+  src: url("../fonts/inter-display-bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Display";
+  src: url("../fonts/inter-display-extrabold.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --negro: #070707;
+  --tinta: #f4f1ea;
+  --tenue: #9b988f;
+  --linea: rgba(244, 241, 234, 0.12);
+  --acento: #ff6b2c;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body.portal {
+  margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--negro);
+  color: var(--tinta);
+  font-family: "Inter Display", system-ui, -apple-system, "Segoe UI", sans-serif;
+  overflow: hidden;
+}
+
+/* Grano sutil sobre toda la portada */
+.portal-grano {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* ---------- Cabecera ---------- */
+.portal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px clamp(16px, 3vw, 40px);
+  border-bottom: 1px solid var(--linea);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.portal-marca {
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: var(--tinta);
+}
+
+.portal-evento { text-align: right; }
+
+/* ---------- Dos modos ---------- */
+.portal-modos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 0;
+}
+
+.modo {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 0;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--negro);
+}
+
+.modo + .modo { border-left: 1px solid var(--linea); }
+
+/* Resplandor suave detrás de cada imagen */
+.modo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(60% 55% at 50% 42%, rgba(244, 241, 234, 0.055), transparent 70%);
+  transition: opacity 0.6s ease;
+}
+
+.modo-visual {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: clamp(14px, 2.4vw, 36px) clamp(18px, 3vw, 48px);
+  overflow: hidden;
+}
+
+.modo-visual img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+  filter: saturate(0.96) brightness(0.94);
+}
+
+/* La imagen del modo inmersivo tiene fondo negro: se funde con el panel. */
+.modo-inmersivo .modo-visual img {
+  mix-blend-mode: lighten;
+  filter: saturate(1.02) brightness(1);
+}
+
+.modo-info {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: end;
+  gap: clamp(12px, 2vw, 26px);
+  padding: clamp(18px, 2.4vw, 30px) clamp(18px, 3vw, 44px) clamp(22px, 3vw, 40px);
+  border-top: 1px solid var(--linea);
+  background: linear-gradient(180deg, transparent, rgba(7, 7, 7, 0.6));
+}
+
+.modo-num {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  color: var(--tenue);
+  padding-bottom: 0.35em;
+}
+
+.modo-textos { display: flex; flex-direction: column; gap: 0.35em; }
+
+.modo-titulo {
+  font-size: clamp(1.35rem, 2.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  transition: color 0.35s ease;
+}
+
+.modo-desc {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: clamp(0.78rem, 0.95vw, 0.9rem);
+  color: var(--tenue);
+  line-height: 1.4;
+}
+
+.modo-flecha {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  color: var(--tinta);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+}
+.modo-flecha svg { width: 20px; height: 20px; }
+
+/* ---------- Interacción ---------- */
+@media (hover: hover) {
+  .modo:hover .modo-visual img,
+  .modo:focus-visible .modo-visual img {
+    transform: scale(1.055);
+    filter: saturate(1.05) brightness(1);
+  }
+  .modo:hover .modo-titulo,
+  .modo:focus-visible .modo-titulo { color: var(--acento); }
+  .modo:hover .modo-flecha,
+  .modo:focus-visible .modo-flecha {
+    transform: translateX(6px);
+    background: var(--acento);
+    border-color: var(--acento);
+    color: #140a04;
+  }
+  .modo:hover::before { opacity: 1.6; }
+}
+
+.modo:active .modo-visual img { transform: scale(1.02); }
+
+.modo:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: -8px;
+}
+
+/* ---------- Pie ---------- */
+.portal-pie {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--linea);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.portal-pie-punto {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--acento);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  body.portal { overflow: auto; }
+  .portal-modos { grid-template-columns: 1fr; }
+  .modo { min-height: 46dvh; }
+  .modo + .modo {
+    border-left: 0;
+    border-top: 1px solid var(--linea);
+  }
+  .modo-visual { padding: 10px 18px; }
+  .modo-visual img { max-height: 24dvh; }
+  .modo-info { grid-template-columns: auto 1fr auto; padding: 14px 18px 18px; }
+  .modo-flecha { width: 42px; height: 42px; }
+  .portal-top { font-size: 0.6rem; }
+  .portal-evento { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modo-visual img,
+  .modo-flecha,
+  .modo-titulo { transition: none; }
+}
