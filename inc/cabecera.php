@@ -3,7 +3,7 @@
  * Cabecera HTML común de CaszaMosqui (inicio y páginas internas).
  * La página que la incluye debe definir antes:
  *   $page_title        Título de la pestaña y de la página.
- *   $active_page       Clave del ítem de menú activo (mapa, reportar, prevencion, salud, cuestionario).
+ *   $active_page       Clave del ítem de menú activo (mapa, reportar, prevencion, salud, cuestionario, sintomas, comentarios).
  *   $reportes_logueado, $reportes_error, $reportes_csrf   Datos de sesión del administrador.
  * Uso: require __DIR__ . '/inc/cabecera.php';
  */
@@ -25,14 +25,14 @@ if (!function_exists('nav_clase')) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= e($page_title) ?> · <?= e(APP_NAME) ?></title>
   <link rel="manifest" href="<?= e(BASE_URL) ?>/manifest.webmanifest">
-  <meta name="theme-color" content="#134e4a">
+  <meta name="theme-color" content="#0b1220">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="CaszaMosqui">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/app/favicon-48.png" type="image/png">
   <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/app/apple-touch-icon.png">
-  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css?v=20261112-salud">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/styles.css?v=20261113-equipo">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/chatbot.css">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/clima.css?v=20260925-vivo">
   <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/leaflet.css">
@@ -43,14 +43,19 @@ if (!function_exists('nav_clase')) {
 <header class="topbar">
   <?php require __DIR__ . '/acceso-admin.php'; ?>
   <div class="container">
-    <div class="brand">
-      <div class="brand-text">
-        <h1><?= e(APP_NAME) ?></h1>
-        <p><?= e(APP_TAGLINE) ?></p>
-      </div>
-      <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza.jpeg" alt="<?= e(APP_NAME) ?>" class="logo-img">
-    </div>
-    <nav>
+    <nav class="topbar-util" aria-label="Información">
+      <a href="<?= e(BASE_URL) ?>/ayuda.php"<?= nav_clase('ayuda', $active_page) ?>>Ayuda</a>
+      <a href="<?= e(BASE_URL) ?>/acerca.php"<?= nav_clase('acerca', $active_page) ?>>Acerca de nosotros</a>
+      <a href="<?= e(BASE_URL) ?>/contacto.php"<?= nav_clase('contacto', $active_page) ?>>Contacto</a>
+    </nav>
+    <a class="brand" href="<?= e(BASE_URL) ?>/" aria-label="<?= e(APP_NAME) ?> · inicio">
+      <img src="<?= e(BASE_URL) ?>/assets/img/logo-emblema.png" alt="" class="logo-img" width="52" height="59">
+      <span class="brand-text">
+        <strong><?= e(APP_NAME) ?></strong>
+        <span><?= e(APP_TAGLINE) ?></span>
+      </span>
+    </a>
+    <nav aria-label="Secciones">
       <a href="<?= e(BASE_URL) ?>/"<?= nav_clase('mapa', $active_page) ?>>Mapa de riesgo</a>
       <a href="<?= e(BASE_URL) ?>/reportar.php"<?= nav_clase('reportar', $active_page) ?>>+ Reportar</a>
       <a href="<?= e(BASE_URL) ?>/prevencion.php"<?= nav_clase('prevencion', $active_page) ?>>Prevención</a>

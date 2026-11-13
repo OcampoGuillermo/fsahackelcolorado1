@@ -22,15 +22,22 @@ header('Pragma: no-cache');
 require __DIR__ . '/inc/cabecera.php';
 ?>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div>
-      <h2>¿Dónde se crían los mosquitos?</h2>
+  <!-- PORTADA -->
+  <section class="hero" aria-labelledby="hero-titulo">
+    <div class="hero-texto">
+      <h2 id="hero-titulo">¿Dónde se crían los mosquitos?</h2>
       <p>Detectá y reportá los criaderos de tu barrio. Entre todos evitamos el
-         <strong>dengue, zika y chikungunya</strong>. 📍 Un reporte = un criadero menos.</p>
-      <a href="<?= e(BASE_URL) ?>/reportar.php" class="btn-hero">Reportar un criadero →</a>
+         <strong>dengue, zika y chikungunya</strong>. Un reporte = un criadero menos.</p>
+      <div class="hero-acciones">
+        <a href="<?= e(BASE_URL) ?>/reportar.php" class="btn-hero">Reportar un criadero
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a href="#mapa" class="btn-hero-sec">Ver el mapa de riesgo</a>
+      </div>
+      <p class="hero-kpis" data-js-hero-kpis aria-live="polite"></p>
     </div>
-    <div class="hero-kpis" data-js-hero-kpis></div>
+    <div class="hero-logo" aria-hidden="true">
+      <img src="<?= e(BASE_URL) ?>/assets/img/logo-casza-hero.webp" alt="" width="1172" height="896" fetchpriority="high">
+    </div>
   </section>
 
   <!-- ALERTA CLIMÁTICA -->
@@ -41,17 +48,5 @@ require __DIR__ . '/inc/cabecera.php';
   <?php require __DIR__ . '/inc/mapa.php'; ?>
 
   <?php require __DIR__ . '/inc/kpis.php'; ?>
-
-  <!-- TIPOS MÁS COMUNES -->
-  <section class="panel">
-    <a href="<?= e(BASE_URL) ?>/" class="btn-volver-inicio">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      Volver Al Inicio
-    </a>
-    <h2>🐞 Criaderos más reportados</h2>
-    <div class="sectores" data-js-tipos>
-      <p class="loading">Cargando…</p>
-    </div>
-  </section>
 
 <?php require __DIR__ . '/inc/scripts.php'; ?>

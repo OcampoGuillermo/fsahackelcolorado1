@@ -15,7 +15,7 @@
 
    Para publicar cambios en los archivos cacheados: subir VERSION.
    ============================================================ */
-const VERSION = 'casza-v3-20261112';
+const VERSION = 'casza-v5-20261113';
 const CACHE_APP = `${VERSION}-app`;
 const CACHE_DATOS = `${VERSION}-datos`;
 const CACHE_MAPA = 'casza-teselas-v1';   // independiente de VERSION: las teselas no cambian
@@ -30,6 +30,9 @@ const PRECARGA = [
   'prevencion.php',
   'centros-salud.php',
   'cuestionario.php',
+  'ayuda.php',
+  'acerca.php',
+  'contacto.php',
   'comentarios.php',
   'test-sintomas.php',
   'manifest.webmanifest',
@@ -45,6 +48,10 @@ const PRECARGA = [
   'assets/js/geo.js',
   'assets/js/mapa-real.js',
   'assets/js/centros-salud.js',
+  'assets/fonts/inter-display-bold.woff',
+  'assets/fonts/inter-display-extrabold.woff',
+  'assets/img/logo-emblema.png',
+  'assets/img/logo-casza-hero.webp',
   'assets/js/reporte-extra.js',
   'assets/js/offline.js',
   'assets/js/chatbot.js',
@@ -217,6 +224,7 @@ self.addEventListener('fetch', (ev) => {
   if (req.mode === 'navigate') {
     if (ruta === '' || ruta === 'index.php' || ruta === 'reportar.php' || ruta === 'prevencion.php'
         || ruta === 'centros-salud.php' || ruta === 'cuestionario.php'
+        || ruta === 'ayuda.php' || ruta === 'acerca.php' || ruta === 'contacto.php'
         || ruta === 'comentarios.php' || ruta === 'test-sintomas.php') {
       // La página guardada no depende de la query (?origen=app, ?demo=1…)
       const clave = new Request(new URL(ruta === 'index.php' ? './' : ruta || './', self.location).href);
@@ -224,6 +232,9 @@ self.addEventListener('fetch', (ev) => {
     }
     return;
   }
+
+  // Videos de la ayuda: directo de la red (el navegador los pide por partes, con Range)
+  if (ruta.startsWith('assets/video/')) return;
 
   // Archivos de la app
   if (ruta.startsWith('assets/') || ruta === 'manifest.webmanifest') {
