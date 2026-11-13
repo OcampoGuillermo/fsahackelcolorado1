@@ -1380,3 +1380,108 @@ button:focus-visible,
 @media (max-width: 560px) {
   .inm-btn-video-marco { width: 76px; height: 76px; }
 }
+
+/* ============================================================
+   Botón-sala de video (botones 2–6: reportar, prevención,
+   salud, cuestionario y test). Enlace a pantalla completa.
+   ============================================================ */
+.inm-slide-btn {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.inm-slide-btn:focus-visible {
+  outline: 3px solid var(--inm-acento);
+  outline-offset: -3px;
+}
+
+.inm-btn-slide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  gap: clamp(28px, 4.4vw, 72px);
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.inm-btn-slide-video {
+  width: 100%;
+  max-width: 720px;
+  justify-self: center;
+}
+.inm-btn-slide-video .inm-marco-pantalla { aspect-ratio: 16 / 9; }
+.inm-btn-marco-cuad .inm-marco-pantalla { aspect-ratio: 1 / 1; }
+.inm-btn-slide-video video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  object-fit: cover;
+}
+.inm-btn-slide-video:hover { transform: perspective(1300px) rotateY(0deg) rotateX(0deg) translateY(-4px); }
+
+.inm-btn-slide-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--inm-acento-oscuro);
+  font-family: var(--inm-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.inm-btn-slide-kicker i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--inm-acento);
+  animation: inm-pulso 2.4s ease-out infinite;
+}
+
+.inm-btn-slide-titulo {
+  margin: 16px 0 18px;
+  font-size: clamp(2.8rem, 7vw, 6.4rem);
+  text-wrap: balance;
+}
+
+.inm-btn-slide-copy { max-width: 560px; }
+.inm-btn-slide-copy .inm-lead { max-width: 44ch; }
+
+.inm-btn-slide-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 26px;
+  padding: 14px 18px;
+  border: 1px solid var(--inm-linea);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--inm-tinta);
+  font-family: var(--inm-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: background 0.22s ease, color 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+}
+.inm-btn-slide-cta svg { width: 15px; height: 15px; transition: transform 0.22s ease; }
+.inm-slide-btn:hover .inm-btn-slide-cta {
+  background: var(--inm-tinta);
+  border-color: var(--inm-tinta);
+  color: var(--inm-papel);
+  transform: translateY(-2px);
+}
+.inm-slide-btn:hover .inm-btn-slide-cta svg { transform: translateX(3px); }
+
+.inm-slide-btn .inm-slide-num { opacity: 0.75; }
+
+@media (max-width: 900px) {
+  .inm-btn-slide { grid-template-columns: 1fr; gap: 20px; }
+  .inm-btn-slide-video { order: -1; max-width: 100%; }
+  .inm-btn-slide-video .inm-marco-pantalla { aspect-ratio: 16 / 9; }
+  .inm-btn-marco-cuad .inm-marco-pantalla { aspect-ratio: 4 / 3; }
+  .inm-btn-slide-titulo { font-size: clamp(2.4rem, 9vw, 4rem); }
+  .inm-btn-slide-kicker { font-size: 0.54rem; }
+}

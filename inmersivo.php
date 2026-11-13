@@ -3,19 +3,19 @@
  * CaszaMosqui — Modo inmersivo (recorrido horizontal)
  * Galería 3D invertida: sala clara, paneles oscuros y desplazamiento lateral.
  * Inspirada en la entrada de Panasonic DSR, adaptada a El Colorado.
+ *
+ * Estructura: 01 Portada con el video de mapa → 02–06 botones de video
+ * que llevan a los clones inmersivos de cada sección.
  */
 require_once __DIR__ . '/inc/helpers.php';
 
-$centros = require __DIR__ . '/inc/centros-salud.php';
-$centros_mostrar = array_slice($centros, 0, 4);
-
 $slides = [
-    'inicio'     => 'Portada',
-    'datos'      => 'Datos',
-    'territorio' => 'Territorio',
-    'prevencion' => 'Prevención',
-    'salud'      => 'Salud',
-    'cierre'     => 'Participá',
+    'inicio'        => 'Portada',
+    'reportar'      => 'Reportar un criadero',
+    'prevencion'    => 'Prevención',
+    'centros'       => 'Centros de salud',
+    'cuestionario'  => 'Cuestionario',
+    'test-sintomas' => 'Test de síntomas',
 ];
 ?><!DOCTYPE html>
 <html lang="es">
@@ -23,12 +23,12 @@ $slides = [
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Modo inmersivo · <?= e(APP_NAME) ?></title>
-  <meta name="description" content="Recorrido horizontal en 3D por el mapa de criaderos de mosquitos de El Colorado: datos en vivo, prevención, emergencias y centros de salud.">
+  <meta name="description" content="Recorrido horizontal en 3D por CaszaMosqui: reportá criaderos, guías de prevención, centros de salud, cuestionario y test de síntomas.">
   <meta name="theme-color" content="#ece9e1">
   <link rel="manifest" href="<?= e(BASE_URL) ?>/manifest.webmanifest">
   <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/app/favicon-48.png" type="image/png">
   <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/app/apple-touch-icon.png">
-  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/inmersivo.css?v=20261113-salas6">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/inmersivo.css?v=20261113-salas8">
 </head>
 <body class="inm">
 
@@ -85,7 +85,7 @@ $slides = [
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </span>
             </a>
-            <a class="inm-btn inm-btn-primario" href="<?= e(BASE_URL) ?>/reportar.php">
+            <a class="inm-btn inm-btn-primario" href="<?= e(BASE_URL) ?>/reportar-inmersivo.php">
               Reportar un criadero
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </a>
@@ -107,190 +107,120 @@ $slides = [
       <span class="inm-slide-num" aria-hidden="true">01</span>
     </section>
 
-    <!-- 02 · DATOS EN VIVO -->
-    <section class="inm-slide" id="datos" data-slide="1" aria-labelledby="inm-datos-titulo">
-      <div class="inm-slide-inner inm-slide-datos">
-        <header class="inm-cab inm-anim">
-          <p class="inm-indice">01 / En vivo</p>
-          <h2 id="inm-datos-titulo">Lo que el mapa ya sabe.</h2>
-        </header>
-
-        <div class="inm-ventana inm-anim">
-          <div class="inm-datos-grilla">
-            <article class="inm-dato">
-              <strong data-contador="total">—</strong>
-              <span>Criaderos reportados</span>
-            </article>
-            <article class="inm-dato">
-              <strong data-contador="controlados" data-sufijo="%">—</strong>
-              <span>Ya controlados</span>
-            </article>
-            <article class="inm-dato">
-              <strong data-contador="riesgo">—</strong>
-              <span>Barrios en alerta</span>
-            </article>
-            <article class="inm-dato">
-              <strong data-contador="barrios">—</strong>
-              <span>Barrios en el mapa</span>
-            </article>
+    <!-- 02 · + REPORTAR CRIADERO (botón 2) -->
+    <a class="inm-slide inm-slide-btn" id="reportar" data-slide="1" href="<?= e(BASE_URL) ?>/reportar-inmersivo.php" aria-label="Botón 2: ir a Reportar un criadero">
+      <div class="inm-slide-inner inm-btn-slide">
+        <figure class="inm-marco inm-btn-slide-video inm-btn-marco-cuad inm-anim">
+          <div class="inm-marco-pantalla">
+            <video src="<?= e(BASE_URL) ?>/assets/video/boton-reporte-criadero.mp4"
+                   poster="<?= e(BASE_URL) ?>/assets/img/boton-reporte-criadero-poster.jpg"
+                   autoplay muted loop playsinline preload="metadata" tabindex="-1"></video>
           </div>
-          <div class="inm-datos-pie">
-            <p class="inm-nota" data-js-estado>Conectando con el mapa comunitario…</p>
-            <ul class="inm-tipos" data-js-tipos aria-label="Criaderos más reportados"></ul>
-          </div>
+          <figcaption><span>Botón 2 / 06</span><span>+ Reportar criadero</span></figcaption>
+        </figure>
+        <div class="inm-btn-slide-copy inm-anim">
+          <p class="inm-btn-slide-kicker"><i aria-hidden="true"></i> Botón 2 / 06 — + Reportar criadero</p>
+          <h1 class="inm-titulo inm-btn-slide-titulo">Reportá<br><span>un criadero.</span></h1>
+          <p class="inm-lead">Elegí el tipo de situación y el barrio. Tu reporte se suma al mapa de riesgo al instante y guía la fumigación del barrio.</p>
+          <span class="inm-btn-slide-cta">Tocá para abrir
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
         </div>
       </div>
       <span class="inm-slide-num" aria-hidden="true">02</span>
-    </section>
+    </a>
 
-    <!-- 03 · TERRITORIO -->
-    <section class="inm-slide" id="territorio" data-slide="2" aria-labelledby="inm-territorio-titulo">
-      <div class="inm-slide-inner inm-territorio">
-        <div class="inm-copy">
-          <p class="inm-indice inm-anim">02 / Territorio</p>
-          <h2 class="inm-anim" id="inm-territorio-titulo">El riesgo<br>tiene dirección.</h2>
-          <p class="inm-texto inm-anim">
-            El índice sube con cada criadero sin controlar. Los barrios en rojo
-            concentran los focos activos; los verdes ya están en tratamiento.
-          </p>
-
-          <ul class="inm-leyenda inm-anim" aria-label="Nivel de riesgo">
-            <li><i class="nivel-alto" aria-hidden="true"></i><span>Alto</span><em>4+ focos</em></li>
-            <li><i class="nivel-medio" aria-hidden="true"></i><span>Medio</span><em>2 o 3</em></li>
-            <li><i class="nivel-bajo" aria-hidden="true"></i><span>Bajo</span><em>0 o 1</em></li>
-          </ul>
-
-          <a class="inm-enlace inm-anim" href="<?= e(BASE_URL) ?>/tradicional.php#mapa">
-            Abrir mapa interactivo
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </a>
-        </div>
-
-        <figure class="inm-marco inm-marco-mapa inm-anim">
+    <!-- 03 · PREVENCIÓN (botón 3) -->
+    <a class="inm-slide inm-slide-btn" id="prevencion" data-slide="2" href="<?= e(BASE_URL) ?>/prevencion-inmersivo.php" aria-label="Botón 3: ir a Prevención">
+      <div class="inm-slide-inner inm-btn-slide">
+        <figure class="inm-marco inm-btn-slide-video inm-anim">
           <div class="inm-marco-pantalla">
-            <div class="inm-mapa-lienzo">
-              <img src="<?= e(BASE_URL) ?>/assets/img/mapa-el-colorado.svg"
-                   alt="Plano de barrios de El Colorado con los puntos de riesgo" width="576" height="642">
-              <div class="inm-mapa-puntos" data-js-puntos aria-hidden="true"></div>
-            </div>
+            <video src="<?= e(BASE_URL) ?>/assets/video/boton-prevencion.mp4"
+                   poster="<?= e(BASE_URL) ?>/assets/img/boton-prevencion-poster.jpg"
+                   autoplay muted loop playsinline preload="metadata" tabindex="-1"></video>
           </div>
-          <figcaption><span><b data-js-mapa-pie>—</b> barrios georreferenciados</span><span>Plano municipal</span></figcaption>
+          <figcaption><span>Botón 3 / 06</span><span>Prevención</span></figcaption>
         </figure>
+        <div class="inm-btn-slide-copy inm-anim">
+          <p class="inm-btn-slide-kicker"><i aria-hidden="true"></i> Botón 3 / 06 — Prevención</p>
+          <h1 class="inm-titulo inm-btn-slide-titulo"><span>Prevención</span><br>sin agua.</h1>
+          <p class="inm-lead">Tapá, vaciá y tirá. Sin agua estancada, no hay mosquito: el Aedes aegypti cría en tu patio.</p>
+          <span class="inm-btn-slide-cta">Tocá para abrir
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+        </div>
       </div>
       <span class="inm-slide-num" aria-hidden="true">03</span>
-    </section>
+    </a>
 
-    <!-- 04 · PREVENCIÓN -->
-    <section class="inm-slide" id="prevencion" data-slide="3" aria-labelledby="inm-prevencion-titulo">
-      <div class="inm-slide-inner inm-slide-prevencion">
-        <header class="inm-cab inm-anim">
-          <p class="inm-indice">03 / Prevención</p>
-          <h2 id="inm-prevencion-titulo">Tres gestos.<br>Un barrio sin mosquitos.</h2>
-        </header>
-
-        <div class="inm-pasos">
-          <article class="inm-paso inm-anim">
-            <p class="inm-paso-num">01</p>
-            <h3>Tapá</h3>
-            <p>Tanques, tachos y baldes: con tapa o tela mosquitera. El agua quieta y a la sombra es la cuna perfecta.</p>
-            <p class="inm-paso-dato">Una hembra puede poner hasta 200 huevos por vez.</p>
-          </article>
-          <article class="inm-paso inm-anim">
-            <p class="inm-paso-num">02</p>
-            <h3>Vaciá</h3>
-            <p>Macetas, bebederos y canaletas. Cambiá el agua de las mascotas y cepillá el borde: los huevos quedan pegados.</p>
-            <p class="inm-paso-dato">Los huevos resisten meses en seco y vuelven con la lluvia.</p>
-          </article>
-          <article class="inm-paso inm-anim">
-            <p class="inm-paso-num">03</p>
-            <h3>Tirá</h3>
-            <p>Neumáticos, latas y botellas. Si junta agua, no tiene que quedar en el patio: llevalo al punto limpio.</p>
-            <p class="inm-paso-dato">Un solo neumático puede criar cientos de mosquitos.</p>
-          </article>
-          <article class="inm-paso inm-paso-extra inm-anim">
-            <p class="inm-paso-num">+</p>
-            <h3>Reportá</h3>
-            <p>Si ves un foco que no podés resolver, marcalo en el mapa. El equipo y los agentes sanitarios lo verifican.</p>
-            <p class="inm-paso-dato">Tu reporte guía la fumigación y la limpieza del barrio.</p>
-          </article>
+    <!-- 04 · CENTROS DE SALUD (botón 4) -->
+    <a class="inm-slide inm-slide-btn" id="centros" data-slide="3" href="<?= e(BASE_URL) ?>/centros-salud-inmersivo.php" aria-label="Botón 4: ir a Centros de salud">
+      <div class="inm-slide-inner inm-btn-slide">
+        <figure class="inm-marco inm-btn-slide-video inm-anim">
+          <div class="inm-marco-pantalla">
+            <video src="<?= e(BASE_URL) ?>/assets/video/boton-centros-salud.mp4"
+                   poster="<?= e(BASE_URL) ?>/assets/img/boton-centros-salud-poster.jpg"
+                   autoplay muted loop playsinline preload="metadata" tabindex="-1"></video>
+          </div>
+          <figcaption><span>Botón 4 / 06</span><span>Centros de salud</span></figcaption>
+        </figure>
+        <div class="inm-btn-slide-copy inm-anim">
+          <p class="inm-btn-slide-kicker"><i aria-hidden="true"></i> Botón 4 / 06 — Centros de salud</p>
+          <h1 class="inm-titulo inm-btn-slide-titulo">Centros<br><span>de salud.</span></h1>
+          <p class="inm-lead">Fiebre alta, dolor detrás de los ojos, sarpullido: no te automediques. Si tenés síntomas, andá al centro más cercano o llamá al 107.</p>
+          <span class="inm-btn-slide-cta">Tocá para abrir
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
         </div>
       </div>
       <span class="inm-slide-num" aria-hidden="true">04</span>
-    </section>
+    </a>
 
-    <!-- 05 · SALUD -->
-    <section class="inm-slide" id="salud" data-slide="4" aria-labelledby="inm-salud-titulo">
-      <div class="inm-slide-inner inm-slide-salud">
-        <div class="inm-copy">
-          <p class="inm-indice inm-anim">04 / Emergencia</p>
-          <h2 class="inm-anim" id="inm-salud-titulo">Si hay fiebre,<br>no esperes.</h2>
-          <p class="inm-texto inm-anim">
-            Fiebre alta, dolor detrás de los ojos, sarpullido o dolor muscular:
-            acercate al centro de salud más próximo. No te automediques.
-          </p>
-          <a class="inm-enlace inm-anim" href="<?= e(BASE_URL) ?>/centros-salud.php">
-            Ver todos los centros de salud
+    <!-- 05 · CUESTIONARIO (botón 5) -->
+    <a class="inm-slide inm-slide-btn" id="cuestionario" data-slide="4" href="<?= e(BASE_URL) ?>/cuestionario-inmersivo.php" aria-label="Botón 5: ir al Cuestionario">
+      <div class="inm-slide-inner inm-btn-slide">
+        <figure class="inm-marco inm-btn-slide-video inm-anim">
+          <div class="inm-marco-pantalla">
+            <video src="<?= e(BASE_URL) ?>/assets/video/boton-cuestionario.mp4"
+                   poster="<?= e(BASE_URL) ?>/assets/img/boton-cuestionario-poster.jpg"
+                   autoplay muted loop playsinline preload="metadata" tabindex="-1"></video>
+          </div>
+          <figcaption><span>Botón 5 / 06</span><span>Cuestionario</span></figcaption>
+        </figure>
+        <div class="inm-btn-slide-copy inm-anim">
+          <p class="inm-btn-slide-kicker"><i aria-hidden="true"></i> Botón 5 / 06 — Cuestionario</p>
+          <h1 class="inm-titulo inm-btn-slide-titulo"><span>¿Cuánto</span><br>sabés?</h1>
+          <p class="inm-lead">¿Cuánto sabés sobre prevención del dengue, zika y chikungunya? Respondé y compartí tu resultado con tu barrio.</p>
+          <span class="inm-btn-slide-cta">Tocá para abrir
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </a>
-        </div>
-
-        <div class="inm-ventana inm-salud-ventana inm-anim">
-          <a class="inm-107" href="tel:107">
-            <span class="inm-107-etiqueta">Emergencias<br>24 h</span>
-            <strong>107</strong>
-            <span class="inm-107-flecha" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </span>
-          </a>
-
-          <ul class="inm-centros">
-            <?php foreach ($centros_mostrar as $c): ?>
-              <li class="inm-centro">
-                <div>
-                  <p class="inm-centro-nombre"><?= e($c['nombre']) ?></p>
-                  <p class="inm-centro-dir"><?= e($c['direccion']) ?><?= !empty($c['barrio']) ? ' · ' . e($c['barrio']) : '' ?></p>
-                </div>
-                <p class="inm-centro-tipo"><?= !empty($c['guardia']) ? 'Guardia 24 h' : 'Programada' ?></p>
-              </li>
-            <?php endforeach; ?>
-          </ul>
+          </span>
         </div>
       </div>
       <span class="inm-slide-num" aria-hidden="true">05</span>
-    </section>
+    </a>
 
-    <!-- 06 · CIERRE -->
-    <section class="inm-slide" id="cierre" data-slide="5" aria-labelledby="inm-cierre-titulo">
-      <div class="inm-slide-inner inm-slide-cierre">
-        <div class="inm-copy">
-          <p class="inm-indice inm-anim">05 / Participá</p>
-          <h2 class="inm-anim" id="inm-cierre-titulo">El mapa cambia<br>cuando reportás.</h2>
-          <p class="inm-lead inm-anim">Un dato tuyo puede ser el que evite el próximo brote en tu barrio.</p>
-          <div class="inm-acciones inm-anim">
-            <a class="inm-btn inm-btn-primario" href="<?= e(BASE_URL) ?>/reportar.php">
-              Reportar un criadero
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </a>
-            <a class="inm-btn inm-btn-sec" href="<?= e(BASE_URL) ?>/tradicional.php">Volver al modo tradicional</a>
+    <!-- 06 · TEST DE SÍNTOMAS (botón 6) -->
+    <a class="inm-slide inm-slide-btn" id="test-sintomas" data-slide="5" href="<?= e(BASE_URL) ?>/test-sintomas-inmersivo.php" aria-label="Botón 6: ir al Test de síntomas">
+      <div class="inm-slide-inner inm-btn-slide">
+        <figure class="inm-marco inm-btn-slide-video inm-anim">
+          <div class="inm-marco-pantalla">
+            <video src="<?= e(BASE_URL) ?>/assets/video/boton-test-sintomas.mp4"
+                   poster="<?= e(BASE_URL) ?>/assets/img/boton-test-sintomas-poster.jpg"
+                   autoplay muted loop playsinline preload="metadata" tabindex="-1"></video>
           </div>
+          <figcaption><span>Botón 6 / 06</span><span>Test de síntomas</span></figcaption>
+        </figure>
+        <div class="inm-btn-slide-copy inm-anim">
+          <p class="inm-btn-slide-kicker"><i aria-hidden="true"></i> Botón 6 / 06 — Test de síntomas</p>
+          <h1 class="inm-titulo inm-btn-slide-titulo">Test de<br><span>síntomas.</span></h1>
+          <p class="inm-lead">Marcá lo que sentís ahora y sabé si necesitás ir urgente al centro de salud o esperar a la próxima cita.</p>
+          <span class="inm-btn-slide-cta">Tocá para abrir
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
         </div>
-
-        <aside class="inm-ventana inm-final inm-anim">
-          <p class="inm-final-marca">CASZAMOSQUI</p>
-          <p class="inm-final-texto">Vigilancia comunitaria contra los criaderos de mosquitos.</p>
-          <dl class="inm-final-datos">
-            <div><dt>Proyecto</dt><dd>Formosa Hack 2026</dd></div>
-            <div><dt>Lugar</dt><dd>El Colorado, Formosa</dd></div>
-            <div><dt>Modo</dt><dd>Sala inmersiva 3D</dd></div>
-          </dl>
-          <div class="inm-final-enlaces">
-            <a href="<?= e(BASE_URL) ?>/tradicional.php">Ir al mapa tradicional</a>
-            <a href="<?= e(BASE_URL) ?>/index.php">Volver a la portada</a>
-          </div>
-        </aside>
       </div>
       <span class="inm-slide-num" aria-hidden="true">06</span>
-    </section>
+    </a>
 
   </main>
 
@@ -331,6 +261,6 @@ $slides = [
       });
     }
   </script>
-  <script src="<?= e(BASE_URL) ?>/assets/js/inmersivo.js?v=20261113-salas6" defer></script>
+  <script src="<?= e(BASE_URL) ?>/assets/js/inmersivo.js?v=20261113-salas8" defer></script>
 </body>
 </html>

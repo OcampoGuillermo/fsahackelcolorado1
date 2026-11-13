@@ -86,7 +86,14 @@
       btn.disabled = indice === total - 1;
     });
 
-    if (slides[indice].id === 'datos') pintarContadores();
+    /* Reproducir el video de la sala activa; pausar los demás */
+    slides.forEach(function (slide, i) {
+      var vids = slide.querySelectorAll('video');
+      Array.prototype.forEach.call(vids, function (v) {
+        if (i === indice) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+        else { try { v.pause(); } catch (err) {} }
+      });
+    });
 
     actualizarHash(indice);
   }
@@ -307,141 +314,6 @@
     }, 140);
   });
 
-  /* ---------- Datos en vivo ---------- */
-  var estado = document.querySelector('[data-js-estado]');
-  var valores = { total: 0, controlados: 0, riesgo: 0, barrios: 0 };
-  var datosListos = false;
-  var animado = false;
-
-  function pintarContadores() {
-    if (animado || !datosListos) return;
-    if (!slides[actual] || slides[actual].id !== 'datos') return;
-    animado = true;
-
-    document.querySelectorAll('[data-contador]').forEach(function (el) {
-      var clave = el.getAttribute('data-contador');
-      if (!Object.prototype.hasOwnProperty.call(valores, clave)) return;
-      var destino = valores[clave];
-      var sufijo = el.getAttribute('data-sufijo') || '';
-
-      if (reduceMotion) {
-        el.textContent = destino + sufijo;
-        return;
-      }
-
-      var duracion = 1200;
-      var inicio = null;
-
-      function paso(ts) {
-        if (inicio === null) inicio = ts;
-        var p = Math.min(1, (ts - inicio) / duracion);
-        var eased = 1 - Math.pow(1 - p, 3);
-        el.textContent = Math.round(destino * eased) + sufijo;
-        if (p < 1) window.requestAnimationFrame(paso);
-        else el.textContent = destino + sufijo;
-      }
-      window.requestAnimationFrame(paso);
-    });
-  }
-
-  function pintarMapa(barrios) {
-    var contenedor = document.querySelector('[data-js-puntos]');
-    var pie = document.querySelector('[data-js-mapa-pie]');
-    if (!contenedor) return;
-
-    var conPunto = 0;
-    barrios.forEach(function (b, i) {
-      var x = parseFloat(b.x);
-      var y = parseFloat(b.y);
-      if (!isFinite(x) || !isFinite(y)) return;
-      conPunto++;
-
-      var punto = document.createElement('span');
-      punto.className = 'inm-punto nivel-' + (b.nivel || 'bajo');
-      punto.style.left = x + '%';
-      punto.style.top = y + '%';
-      punto.title = b.nombre + ' · ' + (b.indice || 0) + ' focos activos';
-      contenedor.appendChild(punto);
-
-      window.setTimeout(function () {
-        punto.classList.add('visible');
-      }, reduceMotion ? 0 : 80 + i * 40);
-    });
-
-    if (pie) pie.textContent = String(conPunto);
-  }
-
-  function pintarTipos(tipos) {
-    var lista = document.querySelector('[data-js-tipos]');
-    if (!lista) return;
-    lista.innerHTML = '';
-
-    tipos
-      .filter(function (t) { return Number(t.total) > 0; })
-      .slice(0, 5)
-      .forEach(function (t) {
-        var li = document.createElement('li');
-        var nombre = document.createElement('span');
-        var cantidad = document.createElement('b');
-        nombre.textContent = t.tipo;
-        cantidad.textContent = t.total;
-        li.appendChild(nombre);
-        li.appendChild(cantidad);
-        lista.appendChild(li);
-      });
-  }
-
-  function cargarDatos() {
-    if (!window.fetch) return;
-
-    fetch(BASE + '/api/?route=stats', {
-      headers: { 'Accept': 'application/json' },
-      cache: 'no-store'
-    })
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function (json) {
-        if (!json || !json.ok || !json.data) throw new Error('Respuesta inválida');
-
-        var d = json.data;
-        var barrios = Array.isArray(d.riesgo_barrios) ? d.riesgo_barrios : [];
-        var enAlerta = barrios.filter(function (b) {
-          return b.nivel === 'alto' || b.nivel === 'medio';
-        }).length;
-
-        valores.total = Number(d.total) || 0;
-        valores.controlados = Number(d.controlados_pct) || 0;
-        valores.riesgo = enAlerta;
-        valores.barrios = barrios.length;
-        datosListos = true;
-
-        pintarMapa(barrios);
-        pintarTipos(Array.isArray(d.por_tipo) ? d.por_tipo : []);
-        pintarContadores();
-
-        if (estado) {
-          var hora = new Date().toLocaleTimeString('es-AR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          estado.textContent =
-            'Actualizado ' + hora + ' · ' + valores.total +
-            ' reportes cargados por vecinos de El Colorado.';
-        }
-      })
-      .catch(function () {
-        if (estado) {
-          estado.setAttribute('data-error', '1');
-          estado.textContent =
-            'No pudimos conectar con el mapa en vivo. Podés ver todos los datos en el modo tradicional.';
-        }
-        var pie = document.querySelector('[data-js-mapa-pie]');
-        if (pie) pie.textContent = '—';
-      });
-  }
-
   /* ---------- Arranque ---------- */
   var inicial = indiceDelHash();
 
@@ -449,9 +321,8 @@
     pista.scrollLeft = anchoPista() * inicial;
     actualizar();
     inicializando = false;
-    pintarContadores();
 
-    /* Respaldo: si el hash cambia de tamaño o el navegador restauró el scroll. */
+    /* Respaldo: si el navegador recuperó el scroll. */
     window.setTimeout(function () {
       pista.scrollLeft = anchoPista() * indiceActual();
       actualizar();
@@ -462,6 +333,4 @@
     pista.scrollLeft = anchoPista() * inicial;
     actualizar();
   });
-
-  cargarDatos();
 })();
