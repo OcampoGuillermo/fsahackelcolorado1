@@ -28,7 +28,7 @@ $slides = [
   <link rel="manifest" href="<?= e(BASE_URL) ?>/manifest.webmanifest">
   <link rel="icon" href="<?= e(BASE_URL) ?>/assets/img/app/favicon-48.png" type="image/png">
   <link rel="apple-touch-icon" href="<?= e(BASE_URL) ?>/assets/img/app/apple-touch-icon.png">
-  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/inmersivo.css?v=20261113-salas5">
+  <link rel="stylesheet" href="<?= e(BASE_URL) ?>/assets/css/inmersivo.css?v=20261113-salas6">
 </head>
 <body class="inm">
 
@@ -71,6 +71,20 @@ $slides = [
             una esquina, un barrio que puede cambiar hoy.
           </p>
           <div class="inm-acciones inm-anim">
+            <a class="inm-btn-video" href="<?= e(BASE_URL) ?>/mapa-riesgo.php" aria-label="Mapa de riesgo: abrir el mapa interactivo de El Colorado">
+              <span class="inm-btn-video-marco" aria-hidden="true">
+                <video src="<?= e(BASE_URL) ?>/assets/video/mapa-riesgo-loop.mp4"
+                       poster="<?= e(BASE_URL) ?>/assets/img/mapa-riesgo-poster.jpg"
+                       autoplay muted loop playsinline preload="metadata" tabindex="-1"></video>
+              </span>
+              <span class="inm-btn-video-ficha">
+                <span class="inm-btn-video-etiqueta">Mapa de riesgo</span>
+                <span class="inm-btn-video-sub">Video · Abrir el mapa interactivo</span>
+              </span>
+              <span class="inm-btn-video-flecha" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </span>
+            </a>
             <a class="inm-btn inm-btn-primario" href="<?= e(BASE_URL) ?>/reportar.php">
               Reportar un criadero
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -317,6 +331,6 @@ $slides = [
       });
     }
   </script>
-  <script src="<?= e(BASE_URL) ?>/assets/js/inmersivo.js?v=20261113-salas5" defer></script>
+  <script src="<?= e(BASE_URL) ?>/assets/js/inmersivo.js?v=20261113-salas6" defer></script>
 </body>
 </html>

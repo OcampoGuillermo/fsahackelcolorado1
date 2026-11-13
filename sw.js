@@ -15,7 +15,7 @@
 
    Para publicar cambios en los archivos cacheados: subir VERSION.
    ============================================================ */
-const VERSION = 'casza-v8-20261113';
+const VERSION = 'casza-v9-20261113';
 const CACHE_APP = `${VERSION}-app`;
 const CACHE_DATOS = `${VERSION}-datos`;
 const CACHE_MAPA = 'casza-teselas-v1';   // independiente de VERSION: las teselas no cambian
@@ -28,6 +28,7 @@ const PRECARGA = [
   './',
   'tradicional.php',
   'inmersivo.php',
+  'mapa-riesgo.php',
   'reportar.php',
   'prevencion.php',
   'centros-salud.php',
@@ -229,6 +230,7 @@ self.addEventListener('fetch', (ev) => {
   // Páginas públicas
   if (req.mode === 'navigate') {
     if (ruta === '' || ruta === 'index.php' || ruta === 'tradicional.php' || ruta === 'inmersivo.php'
+        || ruta === 'mapa-riesgo.php'
         || ruta === 'reportar.php' || ruta === 'prevencion.php'
         || ruta === 'centros-salud.php' || ruta === 'cuestionario.php'
         || ruta === 'ayuda.php' || ruta === 'acerca.php' || ruta === 'contacto.php'

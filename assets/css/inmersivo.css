@@ -1286,3 +1286,97 @@ button:focus-visible,
   .inm-hud-progreso i { transition: none !important; }
   .inm-pista { scroll-behavior: auto; }
 }
+
+/* ---------- Botón: video del mapa de riesgo ---------- */
+.inm-acciones { row-gap: 12px; }
+
+.inm-btn-video {
+  order: -1;
+  position: relative;
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 520px;
+  padding: 10px;
+  background: #080908;
+  border: 1px solid rgba(22, 22, 17, 0.5);
+  box-shadow: 0 30px 60px -32px rgba(24, 21, 12, 0.7);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+.inm-btn-video:hover { transform: translateY(-3px); box-shadow: 0 38px 72px -30px rgba(24, 21, 12, 0.8); }
+.inm-btn-video::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 10px;
+  width: 54px;
+  height: 2px;
+  background: var(--inm-acento);
+}
+.inm-btn-video-marco {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: #000;
+}
+.inm-btn-video-marco video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.inm-btn-video-ficha {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-right: 4px;
+}
+.inm-btn-video-etiqueta {
+  color: var(--inm-panel-tinta);
+  font-family: "Inter Display", var(--inm-cuerpo);
+  font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.inm-btn-video-sub {
+  color: var(--inm-panel-tenue);
+  font-family: var(--inm-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.inm-btn-video-flecha {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 240, 231, 0.3);
+  color: var(--inm-panel-tinta);
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.inm-btn-video-flecha svg { width: 16px; height: 16px; }
+.inm-btn-video:hover .inm-btn-video-flecha {
+  background: var(--inm-acento);
+  border-color: var(--inm-acento);
+  color: #1b0a03;
+}
+
+@media (max-width: 900px) {
+  .inm-btn-video { max-width: none; }
+}
+@media (max-width: 560px) {
+  .inm-btn-video-marco { width: 76px; height: 76px; }
+}
